@@ -1,12 +1,15 @@
-# DDOSKing - DDoS攻击仿真环境
-
+# DDoSKING - DDoS攻击自动化仿真工具
 ## 项目简介
-
 DDOSKing 是一个基于 Docker 的 DDoS 攻击仿真环境，专为研究和测试各种 DDoS 攻击技术而设计。本项目使用 Seed-emulator 构建仿真网络环境并提供可视化界面，攻击脚本采用 Go 语言开发并部署在 Docker 容器中。
 
 该仿真环境模拟了当前主流的 DDoS 攻击方法和僵尸网络攻击，并加入了针对 DeepSeek 等 AI 服务的攻击仿真。整个仿真环境只需在单台主机上即可模拟完整的互联网和 DDoS 攻击场景。
 
 > **注意**：部署 DeepSeek 1.5B 至少需要 8GB 内存
+
+![Example 1](pictures/example1.png)
+![Example 2](pictures/example2.png)
+
+
 
 ## 系统需求
 
@@ -52,9 +55,13 @@ DDOSKing 覆盖了多种 DDoS 攻击类型，主要分为以下几类：
 
 脉冲攻击旨在短时间内发送高带宽的报文（数据量往往较低，因此持续时间较短），使目标队列被占满，造成超时，触发 TCP 的拥塞控制，从而使目标 TCP 服务降级。
 
-- **DNSBomb：**IEEE S&P 24的工作，参考链接：[DNSBomb: A New Practical-and-Powerful Pulsing DoS Attack Exploiting DNS Queries-and-Responses | IEEE Conference Publication | IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/10646654)
+- **DNSBomb**：IEEE S&P 24的工作，参考链接：[DNSBomb: A New Practical-and-Powerful Pulsing DoS Attack Exploiting DNS Queries-and-Responses | IEEE Conference Publication | IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/10646654)
 
-- **DNSBoomerang：**DNSBoomerang 基于 DNSBomb 并进行改进，使积累数据量能够大幅增加（攻击积累报文数量随 DNS 反射器增加而增加）。公网实验，攻击者以530kbps速率积累请求，源IP为500台不同的反射服务器（收到响应报文会返回响应报文），积累17s（累计13700条请求），反射带宽达到108Mbps，持续时间约1s，放大204倍。
+- **DNSBoomerang**：DNSBoomerang 基于 DNSBomb 并进行改进，使积累数据量能够大幅增加（攻击积累报文数量随 DNS 反射器增加而增加）。公网实验，攻击者以530kbps速率积累请求，源IP为500台不同的反射服务器（收到响应报文会返回响应报文），积累17s（累计13700条请求），反射带宽达到108Mbps，持续时间约1s，放大204倍。
+  <div style=text-align:left>
+      <img src="pictures/dnsboomerang2.png" width="40%" />
+      <img src="pictures/dnsboomerang1.png" width="40%" />
+  </div>
 
 
 ## 环境搭建
