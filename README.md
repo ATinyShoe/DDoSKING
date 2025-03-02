@@ -1,9 +1,4 @@
 # DDOSKing - DDoS攻击仿真环境
-
-![image-20250302140010433](C:\Users\17128\AppData\Roaming\Typora\typora-user-images\image-20250302140010433.png)
-
-<img src="C:\Users\17128\AppData\Roaming\Typora\typora-user-images\image-20250302163118293.png" alt="image-20250302163118293" style="zoom: 33%;" />
-
 ## 项目简介
 
 DDOSKing 是一个基于 Docker 的 DDoS 攻击仿真环境，专为研究和测试各种 DDoS 攻击技术而设计。本项目使用 Seed-emulator 构建仿真网络环境并提供可视化界面，攻击脚本采用 Go 语言开发并部署在 Docker 容器中。
@@ -60,10 +55,6 @@ DDOSKing 覆盖了多种 DDoS 攻击类型，主要分为以下几类：
 
 - **DNSBoomerang：**DNSBoomerang 基于 DNSBomb 并进行改进，使积累数据量能够大幅增加（攻击积累报文数量随 DNS 反射器增加而增加）。公网实验，攻击者以530kbps速率积累请求，源IP为500台不同的反射服务器（收到响应报文会返回响应报文），积累17s（累计13700条请求），反射带宽达到108Mbps，持续时间约1s，放大204倍。
 
-  <div style=text-align:left>
-      <img src="C:\Users\17128\AppData\Roaming\Typora\typora-user-images\image-20250302182435467.png" alt="image-20250302182435467" style="zoom:33%;" />
-      <img src="C:\Users\17128\AppData\Roaming\Typora\typora-user-images\image-20250302182256270.png" alt="image-20250302182256270" style="zoom:45%;" />
-  </div>
 
 ## 环境搭建
 
