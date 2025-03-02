@@ -1,4 +1,5 @@
 # DDOSKing - DDoS攻击仿真环境
+
 ## 项目简介
 
 DDOSKing 是一个基于 Docker 的 DDoS 攻击仿真环境，专为研究和测试各种 DDoS 攻击技术而设计。本项目使用 Seed-emulator 构建仿真网络环境并提供可视化界面，攻击脚本采用 Go 语言开发并部署在 Docker 容器中。
@@ -193,11 +194,6 @@ ollama run deepseek-r1:1.5b
 ## 许可证
 本项目基于 [GNU通用公共许可证第3版（GNU GPL v3）](https://www.gnu.org/licenses/gpl-3.0.html) 发布。详细条款请参阅项目根目录中的 `LICENSE` 文件。
 
-## 问题反馈
-
-如遇问题或有改进建议，请通过以下方式联系：
-
-- 提交GitHub Issue：[项目仓库Issue页面](https://github.com/yourusername/ddosking/issues)
 
 ## 免责声明
 
