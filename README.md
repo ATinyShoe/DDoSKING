@@ -99,7 +99,8 @@ docker load -i ollama.tar
 docker load -i unbound.tar
 ```
 
-镜像下载地址：链接：https://rec.ustc.edu.cn/share/e961def0-f679-11ef-8767-d33b1f047ce8（密码：1958）
+镜像下载地址：链接：https://rec.ustc.edu.cn/share/e961def0-f679-11ef-8767-d33b1f047ce8
+（密码：1958）
 
 ### 启动仿真环境
 
