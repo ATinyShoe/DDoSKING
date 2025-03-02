@@ -1,0 +1,58 @@
+router id 10.101.0.101;
+protocol device {
+}
+protocol bgp p_as2 {
+    ipv4 {
+        import all;
+        export all;
+    };
+    rs client;
+    local 10.101.0.101 as 101;
+    neighbor 10.101.0.2 as 2;
+}
+protocol bgp p_as160 {
+    ipv4 {
+        import all;
+        export all;
+    };
+    rs client;
+    local 10.101.0.101 as 101;
+    neighbor 10.101.0.160 as 160;
+}
+protocol bgp p_as161 {
+    ipv4 {
+        import all;
+        export all;
+    };
+    rs client;
+    local 10.101.0.101 as 101;
+    neighbor 10.101.0.161 as 161;
+}
+protocol bgp p_as162 {
+    ipv4 {
+        import all;
+        export all;
+    };
+    rs client;
+    local 10.101.0.101 as 101;
+    neighbor 10.101.0.162 as 162;
+}
+protocol bgp p_as163 {
+    ipv4 {
+        import all;
+        export all;
+    };
+    rs client;
+    local 10.101.0.101 as 101;
+    neighbor 10.101.0.163 as 163;
+}
+protocol bgp p_as164 {
+    ipv4 {
+        import all;
+        export all;
+    };
+    rs client;
+    local 10.101.0.101 as 101;
+    neighbor 10.101.0.164 as 164;
+}
+

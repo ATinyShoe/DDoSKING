@@ -1,0 +1,1162 @@
+version: "3.4"
+services:
+    ddosking:
+        build:
+            context: ddosking
+        image: ddosking
+    unbound:
+        build:
+            context: unbound
+        image: unbound
+    deepseek:
+        build:
+            context: deepseek
+        image: deepseek
+    19cebccd626b23641208b20e621dea9b:
+        build:
+            context: .
+            dockerfile: dummies/19cebccd626b23641208b20e621dea9b
+        image: 19cebccd626b23641208b20e621dea9b
+        depends_on:
+            - ddosking
+
+    88f443429ac4dfe75fdb4f18f2c6df99:
+        build:
+            context: .
+            dockerfile: dummies/88f443429ac4dfe75fdb4f18f2c6df99
+        image: 88f443429ac4dfe75fdb4f18f2c6df99
+        depends_on:
+            - unbound
+
+    98a2693c996c2294358552f48373498d:
+        build:
+            context: .
+            dockerfile: dummies/98a2693c996c2294358552f48373498d
+        image: 98a2693c996c2294358552f48373498d
+
+    39e016aa9e819f203ebc1809245a5818:
+        build:
+            context: .
+            dockerfile: dummies/39e016aa9e819f203ebc1809245a5818
+        image: 39e016aa9e819f203ebc1809245a5818
+
+    b6db407c448546bfe9afa7bd34935349:
+        build:
+            context: .
+            dockerfile: dummies/b6db407c448546bfe9afa7bd34935349
+        image: b6db407c448546bfe9afa7bd34935349
+        depends_on:
+            - deepseek
+
+
+    rnode_2_r100:
+        build: ./rnode_2_r100
+        container_name: as2r-r100-10.100.0.2
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_ix_ix100:
+                ipv4_address: 10.100.0.2
+
+            net_2_net_100_101:
+                ipv4_address: 10.2.0.254
+
+            net_2_net_100_102:
+                ipv4_address: 10.2.2.254
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "2"
+            org.seedsecuritylabs.seedemu.meta.nodename: "r100"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "ix100"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.100.0.2/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "net_100_101"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.2.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.2.name: "net_100_102"
+            org.seedsecuritylabs.seedemu.meta.net.2.address: "10.2.2.254/24"
+
+    rnode_2_r101:
+        build: ./rnode_2_r101
+        container_name: as2r-r101-10.101.0.2
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_ix_ix101:
+                ipv4_address: 10.101.0.2
+
+            net_2_net_100_101:
+                ipv4_address: 10.2.0.253
+
+            net_2_net_101_102:
+                ipv4_address: 10.2.1.254
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "2"
+            org.seedsecuritylabs.seedemu.meta.nodename: "r101"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "ix101"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.101.0.2/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "net_100_101"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.2.0.253/24"
+            org.seedsecuritylabs.seedemu.meta.net.2.name: "net_101_102"
+            org.seedsecuritylabs.seedemu.meta.net.2.address: "10.2.1.254/24"
+
+    rnode_2_r102:
+        build: ./rnode_2_r102
+        container_name: as2r-r102-10.102.0.2
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_ix_ix102:
+                ipv4_address: 10.102.0.2
+
+            net_2_net_101_102:
+                ipv4_address: 10.2.1.253
+
+            net_2_net_100_102:
+                ipv4_address: 10.2.2.253
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "2"
+            org.seedsecuritylabs.seedemu.meta.nodename: "r102"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "ix102"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.102.0.2/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "net_101_102"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.2.1.253/24"
+            org.seedsecuritylabs.seedemu.meta.net.2.name: "net_100_102"
+            org.seedsecuritylabs.seedemu.meta.net.2.address: "10.2.2.253/24"
+
+    rnode_3_r100:
+        build: ./rnode_3_r100
+        container_name: as3r-r100-10.100.0.3
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_ix_ix100:
+                ipv4_address: 10.100.0.3
+
+            net_3_net_100_102:
+                ipv4_address: 10.3.0.254
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "3"
+            org.seedsecuritylabs.seedemu.meta.nodename: "r100"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "ix100"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.100.0.3/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "net_100_102"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.3.0.254/24"
+
+    rnode_3_r102:
+        build: ./rnode_3_r102
+        container_name: as3r-r102-10.102.0.3
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_ix_ix102:
+                ipv4_address: 10.102.0.3
+
+            net_3_net_100_102:
+                ipv4_address: 10.3.0.253
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "3"
+            org.seedsecuritylabs.seedemu.meta.nodename: "r102"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "ix102"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.102.0.3/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "net_100_102"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.3.0.253/24"
+
+    hnode_150_c2-server:
+        build: ./hnode_150_c2-server
+        container_name: as150h-c2-server-10.150.0.71
+        depends_on:
+            - 19cebccd626b23641208b20e621dea9b
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_150_net0:
+                ipv4_address: 10.150.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "150"
+            org.seedsecuritylabs.seedemu.meta.nodename: "c2-server"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.150.0.71/24"
+
+    rnode_150_router0:
+        build: ./rnode_150_router0
+        container_name: as150r-router0-10.150.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_150_net0:
+                ipv4_address: 10.150.0.254
+
+            net_ix_ix100:
+                ipv4_address: 10.100.0.150
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "150"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.150.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix100"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.100.0.150/24"
+
+    hnode_151_dns-auth:
+        build: ./hnode_151_dns-auth
+        container_name: as151h-dns-auth-10.151.0.71
+        depends_on:
+            - 19cebccd626b23641208b20e621dea9b
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_151_net0:
+                ipv4_address: 10.151.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "151"
+            org.seedsecuritylabs.seedemu.meta.nodename: "dns-auth"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.151.0.71/24"
+
+    rnode_151_router0:
+        build: ./rnode_151_router0
+        container_name: as151r-router0-10.151.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_151_net0:
+                ipv4_address: 10.151.0.254
+
+            net_ix_ix100:
+                ipv4_address: 10.100.0.151
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "151"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.151.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix100"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.100.0.151/24"
+
+    hnode_152_unbound-server:
+        build: ./hnode_152_unbound-server
+        container_name: as152h-unbound-server-10.152.0.71
+        depends_on:
+            - 88f443429ac4dfe75fdb4f18f2c6df99
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_152_net0:
+                ipv4_address: 10.152.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "152"
+            org.seedsecuritylabs.seedemu.meta.nodename: "unbound-server"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.152.0.71/24"
+
+    rnode_152_router0:
+        build: ./rnode_152_router0
+        container_name: as152r-router0-10.152.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_152_net0:
+                ipv4_address: 10.152.0.254
+
+            net_ix_ix100:
+                ipv4_address: 10.100.0.152
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "152"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.152.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix100"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.100.0.152/24"
+
+    hnode_153_deepseek-server:
+        build: ./hnode_153_deepseek-server
+        container_name: as153h-deepseek-server-10.153.0.71
+        depends_on:
+            - b6db407c448546bfe9afa7bd34935349
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_153_net0:
+                ipv4_address: 10.153.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "153"
+            org.seedsecuritylabs.seedemu.meta.nodename: "deepseek-server"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.153.0.71/24"
+
+    rnode_153_router0:
+        build: ./rnode_153_router0
+        container_name: as153r-router0-10.153.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_153_net0:
+                ipv4_address: 10.153.0.254
+
+            net_ix_ix100:
+                ipv4_address: 10.100.0.153
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "153"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.153.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix100"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.100.0.153/24"
+
+    hnode_160_bot-160:
+        build: ./hnode_160_bot-160
+        container_name: as160h-bot-160-10.160.0.71
+        depends_on:
+            - 19cebccd626b23641208b20e621dea9b
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_160_net0:
+                ipv4_address: 10.160.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "160"
+            org.seedsecuritylabs.seedemu.meta.nodename: "bot-160"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.160.0.71/24"
+
+    rnode_160_router0:
+        build: ./rnode_160_router0
+        container_name: as160r-router0-10.160.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_160_net0:
+                ipv4_address: 10.160.0.254
+
+            net_ix_ix101:
+                ipv4_address: 10.101.0.160
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "160"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.160.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix101"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.101.0.160/24"
+
+    hnode_161_bot-161:
+        build: ./hnode_161_bot-161
+        container_name: as161h-bot-161-10.161.0.71
+        depends_on:
+            - 19cebccd626b23641208b20e621dea9b
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_161_net0:
+                ipv4_address: 10.161.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "161"
+            org.seedsecuritylabs.seedemu.meta.nodename: "bot-161"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.161.0.71/24"
+
+    rnode_161_router0:
+        build: ./rnode_161_router0
+        container_name: as161r-router0-10.161.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_161_net0:
+                ipv4_address: 10.161.0.254
+
+            net_ix_ix101:
+                ipv4_address: 10.101.0.161
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "161"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.161.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix101"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.101.0.161/24"
+
+    hnode_162_bot-162:
+        build: ./hnode_162_bot-162
+        container_name: as162h-bot-162-10.162.0.71
+        depends_on:
+            - 19cebccd626b23641208b20e621dea9b
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_162_net0:
+                ipv4_address: 10.162.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "162"
+            org.seedsecuritylabs.seedemu.meta.nodename: "bot-162"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.162.0.71/24"
+
+    rnode_162_router0:
+        build: ./rnode_162_router0
+        container_name: as162r-router0-10.162.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_162_net0:
+                ipv4_address: 10.162.0.254
+
+            net_ix_ix101:
+                ipv4_address: 10.101.0.162
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "162"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.162.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix101"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.101.0.162/24"
+
+    hnode_163_bot-163:
+        build: ./hnode_163_bot-163
+        container_name: as163h-bot-163-10.163.0.71
+        depends_on:
+            - 19cebccd626b23641208b20e621dea9b
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_163_net0:
+                ipv4_address: 10.163.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "163"
+            org.seedsecuritylabs.seedemu.meta.nodename: "bot-163"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.163.0.71/24"
+
+    rnode_163_router0:
+        build: ./rnode_163_router0
+        container_name: as163r-router0-10.163.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_163_net0:
+                ipv4_address: 10.163.0.254
+
+            net_ix_ix101:
+                ipv4_address: 10.101.0.163
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "163"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.163.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix101"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.101.0.163/24"
+
+    hnode_164_bot-164:
+        build: ./hnode_164_bot-164
+        container_name: as164h-bot-164-10.164.0.71
+        depends_on:
+            - 19cebccd626b23641208b20e621dea9b
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_164_net0:
+                ipv4_address: 10.164.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "164"
+            org.seedsecuritylabs.seedemu.meta.nodename: "bot-164"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.164.0.71/24"
+
+    rnode_164_router0:
+        build: ./rnode_164_router0
+        container_name: as164r-router0-10.164.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_164_net0:
+                ipv4_address: 10.164.0.254
+
+            net_ix_ix101:
+                ipv4_address: 10.101.0.164
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "164"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.164.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix101"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.101.0.164/24"
+
+    hnode_170_reflector-170:
+        build: ./hnode_170_reflector-170
+        container_name: as170h-reflector-170-10.170.0.71
+        depends_on:
+            - 19cebccd626b23641208b20e621dea9b
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_170_net0:
+                ipv4_address: 10.170.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "170"
+            org.seedsecuritylabs.seedemu.meta.nodename: "reflector-170"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.170.0.71/24"
+
+    rnode_170_router0:
+        build: ./rnode_170_router0
+        container_name: as170r-router0-10.170.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_170_net0:
+                ipv4_address: 10.170.0.254
+
+            net_ix_ix102:
+                ipv4_address: 10.102.0.170
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "170"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.170.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix102"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.102.0.170/24"
+
+    hnode_171_reflector-171:
+        build: ./hnode_171_reflector-171
+        container_name: as171h-reflector-171-10.171.0.71
+        depends_on:
+            - 19cebccd626b23641208b20e621dea9b
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_171_net0:
+                ipv4_address: 10.171.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "171"
+            org.seedsecuritylabs.seedemu.meta.nodename: "reflector-171"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.171.0.71/24"
+
+    rnode_171_router0:
+        build: ./rnode_171_router0
+        container_name: as171r-router0-10.171.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_171_net0:
+                ipv4_address: 10.171.0.254
+
+            net_ix_ix102:
+                ipv4_address: 10.102.0.171
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "171"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.171.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix102"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.102.0.171/24"
+
+    hnode_180_victim:
+        build: ./hnode_180_victim
+        container_name: as180h-victim-10.180.0.71
+        depends_on:
+            - 98a2693c996c2294358552f48373498d
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_180_net0:
+                ipv4_address: 10.180.0.71
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "180"
+            org.seedsecuritylabs.seedemu.meta.nodename: "victim"
+            org.seedsecuritylabs.seedemu.meta.role: "Host"
+            org.seedsecuritylabs.seedemu.meta.class: "[\"WebService\"]"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.180.0.71/24"
+
+    rnode_180_router0:
+        build: ./rnode_180_router0
+        container_name: as180r-router0-10.180.0.254
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_180_net0:
+                ipv4_address: 10.180.0.254
+
+            net_ix_ix102:
+                ipv4_address: 10.102.0.180
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "180"
+            org.seedsecuritylabs.seedemu.meta.nodename: "router0"
+            org.seedsecuritylabs.seedemu.meta.role: "Router"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.180.0.254/24"
+            org.seedsecuritylabs.seedemu.meta.net.1.name: "ix102"
+            org.seedsecuritylabs.seedemu.meta.net.1.address: "10.102.0.180/24"
+
+    rs_ix_ix100:
+        build: ./rs_ix_ix100
+        container_name: as100rs-ix100-10.100.0.100
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_ix_ix100:
+                ipv4_address: 10.100.0.100
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "100"
+            org.seedsecuritylabs.seedemu.meta.nodename: "ix100"
+            org.seedsecuritylabs.seedemu.meta.role: "Route Server"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "ix100"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.100.0.100/24"
+
+    rs_ix_ix101:
+        build: ./rs_ix_ix101
+        container_name: as101rs-ix101-10.101.0.101
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_ix_ix101:
+                ipv4_address: 10.101.0.101
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "101"
+            org.seedsecuritylabs.seedemu.meta.nodename: "ix101"
+            org.seedsecuritylabs.seedemu.meta.role: "Route Server"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "ix101"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.101.0.101/24"
+
+    rs_ix_ix102:
+        build: ./rs_ix_ix102
+        container_name: as102rs-ix102-10.102.0.102
+        depends_on:
+            - 39e016aa9e819f203ebc1809245a5818
+        cap_add:
+            - ALL
+        sysctls:
+            - net.ipv4.ip_forward=1
+            - net.ipv4.conf.default.rp_filter=0
+            - net.ipv4.conf.all.rp_filter=0
+        privileged: true
+        networks:
+            net_ix_ix102:
+                ipv4_address: 10.102.0.102
+
+
+        labels:
+            org.seedsecuritylabs.seedemu.meta.asn: "102"
+            org.seedsecuritylabs.seedemu.meta.nodename: "ix102"
+            org.seedsecuritylabs.seedemu.meta.role: "Route Server"
+            org.seedsecuritylabs.seedemu.meta.net.0.name: "ix102"
+            org.seedsecuritylabs.seedemu.meta.net.0.address: "10.102.0.102/24"
+
+    seedemu-internet-client:
+        image: handsonsecurity/seedemu-multiarch-map:buildx-latest
+        container_name: seedemu_internet_map
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        ports:
+            - 8080:8080/tcp
+
+networks:
+    net_2_net_100_101:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.2.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "2"
+            org.seedsecuritylabs.seedemu.meta.name: "net_100_101"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.2.0.0/24"
+
+    net_2_net_101_102:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.2.1.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "2"
+            org.seedsecuritylabs.seedemu.meta.name: "net_101_102"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.2.1.0/24"
+
+    net_2_net_100_102:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.2.2.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "2"
+            org.seedsecuritylabs.seedemu.meta.name: "net_100_102"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.2.2.0/24"
+
+    net_3_net_100_102:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.3.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "3"
+            org.seedsecuritylabs.seedemu.meta.name: "net_100_102"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.3.0.0/24"
+
+    net_150_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.150.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "150"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.150.0.0/24"
+
+    net_151_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.151.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "151"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.151.0.0/24"
+
+    net_152_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.152.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "152"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.152.0.0/24"
+
+    net_153_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.153.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "153"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.153.0.0/24"
+
+    net_160_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.160.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "160"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.160.0.0/24"
+
+    net_161_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.161.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "161"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.161.0.0/24"
+
+    net_162_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.162.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "162"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.162.0.0/24"
+
+    net_163_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.163.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "163"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.163.0.0/24"
+
+    net_164_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.164.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "164"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.164.0.0/24"
+
+    net_170_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.170.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "170"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.170.0.0/24"
+
+    net_171_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.171.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "171"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.171.0.0/24"
+
+    net_180_net0:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.180.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "local"
+            org.seedsecuritylabs.seedemu.meta.scope: "180"
+            org.seedsecuritylabs.seedemu.meta.name: "net0"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.180.0.0/24"
+
+    net_ix_ix100:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.100.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "global"
+            org.seedsecuritylabs.seedemu.meta.scope: "ix"
+            org.seedsecuritylabs.seedemu.meta.name: "ix100"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.100.0.0/24"
+            org.seedsecuritylabs.seedemu.meta.displayname: "NYC-100"
+
+    net_ix_ix101:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.101.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "global"
+            org.seedsecuritylabs.seedemu.meta.scope: "ix"
+            org.seedsecuritylabs.seedemu.meta.name: "ix101"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.101.0.0/24"
+            org.seedsecuritylabs.seedemu.meta.displayname: "Chicago-101"
+
+    net_ix_ix102:
+        driver_opts:
+            com.docker.network.driver.mtu: 1500
+        ipam:
+            config:
+                - subnet: 10.102.0.0/24
+        labels:
+            org.seedsecuritylabs.seedemu.meta.type: "global"
+            org.seedsecuritylabs.seedemu.meta.scope: "ix"
+            org.seedsecuritylabs.seedemu.meta.name: "ix102"
+            org.seedsecuritylabs.seedemu.meta.prefix: "10.102.0.0/24"
+            org.seedsecuritylabs.seedemu.meta.displayname: "Miami-102"
+
+
+
