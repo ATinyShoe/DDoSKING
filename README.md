@@ -24,11 +24,10 @@ This comprehensive simulation environment mimics current mainstream DDoS attack 
 DDoSKING stands out as the premier DDoS simulation tool due to these key advantages:
 
 - **🌟 All-in-One Solution**: Complete attack infrastructure simulation in a single environment
-- **🔄 Comprehensive Attack Coverage**: Simulates all major DDoS attack types in one platform
-- **🧠 AI Service Attack Simulation**: Unique capability to test attacks against AI models
-- **⚡ Cutting-Edge Attack Methods**: Includes novel pulse attacks like DNSBomb and DNSBoomerang
+- **🔄 Comprehensive Attack Coverage**: Covers major DDoS attack types, including new pulse attacks like DNSBomb
+- **🧠 Hot Topic Attack Simulation**: Includes simulation of attacks against AI models like Deepseek
 - **🖼️ Visual Network Topology**: Interactive visualization for better understanding of attack paths
-- **🔬 Research-Grade Testing**: Perfect for academic research and security testing
+- **🔬 Research-Grade Testing**: Suitable for academic research and security testing
 - **🛠️ Highly Customizable**: Easy to adjust parameters for custom attack scenarios
 - **🌐 Fully Customizable Network Topology**: Build your own tailored botnet infrastructure to match specific research scenarios
 
