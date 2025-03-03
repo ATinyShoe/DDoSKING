@@ -2,7 +2,7 @@
 
 <div align="center">
 
-### *The Ultimate DDoS Attack Simulation Environment for Network Security Research and Testing*
+### *The DDoS Attack Simulation Environment for Network Security Research and Testing*
     
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Docker](https://img.shields.io/badge/Docker-Required-2496ED?logo=docker)](https://docs.docker.com/engine/install/)
