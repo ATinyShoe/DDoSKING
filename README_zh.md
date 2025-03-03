@@ -2,7 +2,7 @@
 
 <div align="center">
 
-### *网络安全研究与测试的终极DDoS攻击模拟环境*
+### *网络安全研究与测试的DDoS攻击模拟环境*
     
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Docker](https://img.shields.io/badge/Docker-必需-2496ED?logo=docker)](https://docs.docker.com/engine/install/)
