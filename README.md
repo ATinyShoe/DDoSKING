@@ -1,100 +1,134 @@
-# 🛡️ DDoSKING - DDoS Attack Automation Simulation Tool
+# 🛡️ DDoSKING - Automated DDoS Attack Simulation Tool
 
 <div align="center">
 
-### *The DDoS Attack Simulation Environment for Network Security Research and Testing*
-    
+### *A DDoS Attack Simulation Environment for Cybersecurity Research and Testing*
+  
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Docker](https://img.shields.io/badge/Docker-Required-2496ED?logo=docker)](https://docs.docker.com/engine/install/)
-[![Memory](https://img.shields.io/badge/Memory-16GB%20Recommended-red)](https://github.com/seed-labs/seed-emulator)
+[![Memory](https://img.shields.io/badge/Memory-Recommended24GB-red)](https://github.com/seed-labs/seed-emulator)
 [![Python](https://img.shields.io/badge/Python-3.x-yellow?logo=python)](https://www.python.org/)
-[![Go](https://img.shields.io/badge/Go-Powered-00ADD8?logo=go)](https://golang.org/)
-    
+[![Go](https://img.shields.io/badge/Go-Driver-00ADD8?logo=go)](https://golang.org/)
+  
 </div>
 
 ## 📋 Project Overview
-DDOSKing is a state-of-the-art DDoS attack simulation environment based on Docker, specifically designed for researching and testing various DDoS attack techniques. This project uses Seed-emulator to build a simulated network environment and provides a visual interface. The attack scripts are developed in Go and deployed in Docker containers.
 
-This comprehensive simulation environment mimics current mainstream DDoS attack methods and botnet attacks, and includes simulations of attacks against AI services like DeepSeek. The entire simulation environment can simulate a complete internet and DDoS attack scenario on a single host, making it the most advanced all-in-one DDoS testing platform available for security researchers and professionals.
+DDoSKING is a cutting-edge, Docker-based DDoS attack simulation environment designed for researching and testing various DDoS attack techniques. Built using the Seed-emulator framework, it provides a visualized network environment. Attack scripts are developed in Go and deployed within Docker containers.
 
-> **⚠️ Note**: At least 8GB of memory is required to deploy DeepSeek 1.5B.
+This comprehensive simulation environment replicates mainstream DDoS attack methods and botnet attacks, including simulations targeting AI services like DeepSeek. It enables the simulation of complete internet and DDoS attack scenarios on a single host, making it an advanced all-in-one DDoS testing platform for security researchers and professionals.
 
-## ✨ Why DDoSKING?
+> **⚠️ Note**: Deploying DeepSeek 1.5B requires at least 8GB of memory.
 
-DDoSKING stands out as the premier DDoS simulation tool due to these key advantages:
+## ✨ Why Choose DDoSKING?
 
-- **🌟 All-in-One Solution**: Complete attack infrastructure simulation in a single environment
-- **🔄 Comprehensive Attack Coverage**: Covers major DDoS attack types, including new pulse attacks like DNSBomb
-- **🧠 Hot Topic Attack Simulation**: Includes simulation of attacks against AI models like Deepseek
-- **🖼️ Visual Network Topology**: Interactive visualization for better understanding of attack paths
+DDoSKING stands out as the preferred DDoS simulation tool with the following key advantages:
+
+- **🌟 All-in-One Solution**: Simulate attack infrastructure in a single environment
+- **🔄 Comprehensive Attack Coverage**: Includes major DDoS attack types and new pulse attacks like DNSBomb
+- **🧠 AI Service Attack Simulation**: Simulates attacks on AI models like DeepSeek
+- **🖼️ Visualized Network Topology**: Interactive visualization for better understanding of attack paths
 - **🔬 Research-Grade Testing**: Suitable for academic research and security testing
-- **🛠️ Highly Customizable**: Easy to adjust parameters for custom attack scenarios
-- **🌐 Fully Customizable Network Topology**: Build your own tailored botnet infrastructure to match specific research scenarios
+- **🛠️ Highly Customizable**: Easily adjustable parameters for tailored attack scenarios
+- **🌐 Fully Customizable Network Topology**: Build custom botnet infrastructures for specific research scenarios
 
-## 🎯 What Can You Do With DDoSKING?
+## 🎯 What Can You Do with DDoSKING?
 
 - **Security Research**: Understand modern DDoS attack mechanisms in a controlled environment
-- **Custom Botnet Development**: Design and build your own botnet architecture to test specific attack scenarios
-- **Defensive Testing**: Develop and test DDoS mitigation strategies without affecting production systems
-- **Education**: Perfect teaching tool for cybersecurity courses and training programs
-- **Security Audits**: Evaluate network infrastructure resilience against various attack types
-- **AI Service Hardening**: Test and improve AI service robustness against targeted attacks
-- **Performance Benchmarking**: Measure how different systems handle various types of traffic loads
+- **Custom Botnet Development**: Design and build your own botnet architecture for testing specific attack scenarios
+- **Defense Testing**: Develop and test DDoS mitigation strategies without impacting production systems
+- **Education**: A perfect teaching tool for cybersecurity courses and training programs
+- **Security Auditing**: Assess network infrastructure resilience against various attack types
+- **AI Service Hardening**: Test and improve AI services' robustness against targeted attacks
+- **Performance Benchmarking**: Measure how different systems handle various traffic loads
 - **Security Product Testing**: Validate the effectiveness of DDoS protection products
 
-![Example 1](pictures/example1.png)
-![Example 2](pictures/example2.png)
+## 🌐 Network Customization Features
+
+DDoSKING offers unparalleled flexibility in network design, enabling researchers to:
+
+- **Create Custom Botnet Topologies**: Design network structures that match real-world scenarios or theoretical models
+- **Scale Your Botnet**: Add as many zombie nodes as hardware allows to test large-scale attacks
+- **Configure Node Relationships**: Define C2 server hierarchies and zombie communication patterns
+- **Simulate Geographic Distribution**: Create network segments simulating geographically distributed botnets
+- **Simulate Different Network Conditions**: Test scenarios with varying bandwidth, latency, and packet loss
+- **Integrate Custom Attack Scripts**: Add your own attack methods implemented in Go
+- **Combine Attack Types**: Create complex multi-vector attack scenarios
+
+The SeedEmu framework supporting DDoSKING allows you to simulate nearly any network configuration, giving you complete freedom to build the precise botnet infrastructure needed for your research or testing.
+
+## 📊 Performance and Features
+
+DDoSKING has been rigorously tested to provide:
+
+- Simulated network environments with hundreds of nodes
+- Support for multiple attack vectors simultaneously
+- Real-time monitoring of attack effects
+- Highly realistic network behavior modeling
+- Containerized approach for easy deployment and scalability
+
+## 🏆 Comparison with Other Solutions
+
+| Feature | DDoSKING | Traditional DDoS Tools | Network Simulators |
+|:-------:|:--------:|:----------------------:|:------------------:|
+| Complete DDoS Infrastructure | ✅ | ❌ | ❌ |
+| AI Service Attack Simulation | ✅ | ❌ | ❌ |
+| Pulse Attack Support | ✅ | ❌ | ❌ |
+| Visualized Topology | ✅ | ❌ | ✅ |
+| Single-Host Deployment | ✅ | ✅ | ❌ |
+| Educational Value | ✅ | ⚠️ | ✅ |
+| Research Applications | ✅ | ⚠️ | ✅ |
 
 ## 💻 System Requirements
 
-To run the simulation environment fully, it is recommended to have more than 24GB of memory.
+To fully run the simulation environment, it is recommended to have more than 24GB of memory.
 
 ## 🧩 System Components
 
-This simulation environment simulates the complete DDoS attack infrastructure, consisting of the following independently built components:
+This simulation environment replicates a complete DDoS attack infrastructure, consisting of the following independently built components:
 
-| Component            | Quantity | Description                           |
+| Component | Quantity | Description |
 |:--------------------:|:--------:|:-------------------------------------:|
-| 🎮 C2 Server            | 1       | Responsible for sending attack commands to bot machines |
-| 🔄 Reflection Amplifier Server | 2     | Used for Layer 4 DDoS reflection amplification attacks |
-| 🤖 Bot Machines         | 5       | Executes various attacks              |
-| 🔍 Unbound DNS Resolver | 1       | Specially configured for pulse attacks |
-| 🌐 DNS Authority Server | 1       | Used for accumulating and amplifying requests for pulse attacks |
-| 🧠 DeepSeek 1.5B Server | 1       | Simulates HTTP attacks on AI services |
+| 🎮 C2 Server | 1 | Sends attack commands to zombie machines |
+| 🔄 Reflection Amplification Servers | 5 | Used for Layer 4 DDoS reflection amplification attacks |
+| 🤖 Zombie Machines | 2 | Execute various attacks |
+| 🔍 Unbound DNS Resolver | 1 | Configured for pulse attacks |
+| 🌐 DNS Authoritative Server | 1 | Accumulates and amplifies pulse attack requests |
+| 🧠 DeepSeek 1.5B Server | 1 | Simulates HTTP attacks targeting AI services |
 
-> **ℹ️ Note**: This simulation environment focuses on DDoS simulations and does not simulate botnet propagation or communication mechanisms (such as brute-forcing weak passwords, DGA searching for C2, etc.). These may be added in a future version.
+> **ℹ️ Note**: This simulation environment focuses on DDoS simulation and does not simulate botnet propagation or communication mechanisms (e.g., brute-forcing weak passwords, DGA searching for C2, etc.). These features may be added in future versions.
 
-Other nodes are automatically generated by SeedEmu. For more details, refer to the [SeedEmu Official Documentation](https://github.com/seed-labs/seed-emulator).
+Other nodes are automatically generated by SeedEmu. For more details, refer to the [SeedEmu official documentation](https://github.com/seed-labs/seed-emulator).
 
 ## 💥 Attack Types
 
-DDOSKing covers various types of DDoS attacks, mainly divided into the following categories:
+DDoSKING covers various types of DDoS attacks, primarily categorized as follows:
 
 ### 1. 🌊 Link Flooding Attacks (Layer 4)
 
-Attacks that fill up network bandwidth with a large volume of traffic, including:
+Attacks that saturate network bandwidth with high traffic, including:
 
-- **Direct Attacks**: UDP flood
+- **Direct Attacks**: UDP Flood
 - **Reflection Amplification Attacks**: DNS, NTP, CLDAP, SSDP, etc.
 
 ### 2. 🔋 Resource Exhaustion Attacks (Layer 7)
 
-Attacks that exhaust server computational resources, including:
+Attacks that deplete server computational resources, including:
 
-- **HTTP Flood**: To keep the environment lightweight, the web service only provides a single page
-- **Constructing complex prompts against DeepSeek**: Consumes AI service resources
+- **HTTP Flood**: Lightweight web service with a single page
+- **Complex Prompts for DeepSeek**: Consumes AI service resources
 - **SYN Flood**: Exhausts the target's half-open connection queue
 
 ### 3. ⚡ Pulse Attacks
 
-Pulse attacks aim to send high-bandwidth packets in a short period (with relatively low data volume, hence short duration), causing the target's queue to fill up, resulting in timeouts and triggering TCP congestion control, which causes the target TCP service to degrade.
+Pulse attacks send high-bandwidth packets in short bursts, filling target queues, causing timeouts, and triggering TCP congestion control, degrading the target's TCP services.
 
-- **DNSBomb**: A work from IEEE S&P 24, reference link: [DNSBomb: A New Practical-and-Powerful Pulsing DoS Attack Exploiting DNS Queries-and-Responses | IEEE Conference Publication | IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/10646654)
+- **DNSBomb**: A practical and powerful pulsing DoS attack exploiting DNS queries and responses. Reference: [DNSBomb: A New Practical-and-Powerful Pulsing DoS Attack Exploiting DNS Queries-and-Responses | IEEE Conference Publication | IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/10646654)
 
-- **DNSBoomerang**: Based on DNSBomb, DNSBoomerang improves it by significantly increasing the accumulated data (the accumulated packet number increases as the number of DNS reflectors increases). In public experiments, the attacker accumulates requests at a rate of 530kbps, with the source IP from 500 different reflection servers (which respond with response packets). After 17 seconds (accumulating 13,700 requests), the reflected bandwidth reaches 108Mbps, and the duration is about 1 second, amplifying by 204 times.
+- **DNSBoomerang**: An enhancement of DNSBomb that significantly increases cumulative data (the number of cumulative packets grows with the number of DNS reflectors). In public experiments, attackers accumulated requests at 530kbps from 500 different reflectors. After 17 seconds (13,700 requests), the reflected bandwidth reached 108Mbps for about 1 second, achieving a 204x amplification.
   <div style=text-align:left>
-      <img src="pictures/dnsboomerang2.png" width="40%" />
-      <img src="pictures/dnsboomerang1.png" width="40%" />
+    <img src="pictures/dnsboomerang2.png" width="40%" />
+    <img src="pictures/dnsboomerang1.png" width="40%" />
   </div>
 
 ## 🚀 Environment Setup
@@ -103,10 +137,10 @@ It is recommended to set up the environment on Linux. Windows users can use WSL.
 
 ### 📦 Installation Steps
 
-#### 1. Docker Installation and Configuration
+#### 1. Install and Configure Docker
 
-- Install Docker: [Reference official documentation](https://docs.docker.com/engine/install/)
-- **Note**: Users in mainland China may need to configure Docker image sources since the default DockerHub may not be accessible.
+- Install Docker: [Refer to the official documentation](https://docs.docker.com/engine/install/)
+- **Note**: Users in mainland China may need to configure Docker mirror sources due to potential access issues with DockerHub.
 
 #### 2. Install Project Dependencies
 
@@ -118,47 +152,30 @@ pip3 install -r requirements.txt
 source development.dev
 ```
 
-#### 3. Prepare Docker Images
+### 🏃 Start the Simulation Environment
 
 ```bash
-# Enter the ddosking directory and create the image directory
-cd ddosking
-mkdir image
-cd image
-
-# Place the downloaded image files into the image directory and load the Docker images
-docker load -i ddosking.tar
-docker load -i ollama.tar
-docker load -i unbound.tar
-```
-
-Image download address: [Link](https://rec.ustc.edu.cn/share/e961def0-f679-11ef-8767-d33b1f047ce8)  
-(Password: 1958)
-
-### 🏃 Start Simulation Environment
-
-```bash
-# Run in the ddosking directory
+# Run in the root directory
 python3 ddosking.py
 
 # Build and start Docker containers
 cd output
-docker-compose build  # The first build takes about half an hour
+docker-compose build  # Initial build may take about 30 minutes
 docker-compose up
 
 # Shut down the simulation environment
 docker-compose down
 ```
 
-To ensure the normal operation of the forged packet sending, you need to clear the NAT rules built by Docker:
+To ensure proper operation of spoofed packet sending, you need to clear the NAT rules built by Docker:
 
 ```bash
 iptables -t nat -F
 ```
 
-> **💡 Tip**: It is recommended to save the NAT rules before clearing them, so they can be restored for debugging.
+> **💡 Tip**: It is recommended to save the NAT rules before clearing them so they can be restored during debugging.
 
-Visit the following URL in a browser to view the network topology map:
+Access the following URL in your browser to view the network topology:
 
 ```
 http://127.0.0.1:8080/map.html
@@ -166,7 +183,7 @@ http://127.0.0.1:8080/map.html
 
 ## ⚙️ Attack Configuration
 
-The bot machines in the botnet need to be configured with the IP addresses of the C2 server, reflectors, and Unbound DNS resolver.
+Zombie machines in the botnet need to be configured with the IP addresses of the C2 server, reflectors, and Unbound DNS resolver.
 
 ### C2 Server Setup
 
@@ -175,7 +192,7 @@ cd /root/c2
 go run main.go  # Start the C2 server to begin listening
 ```
 
-### Bot Node Setup
+### Zombie Node Setup
 
 ```bash
 # Automatically configured, no manual operation required
@@ -191,38 +208,36 @@ go run main.go  # Start the service and connect to the C2 server
 ```bash
 cd /root/reflector
 go run main.go  # Start the service
-# Enter 1 to start listening
+# Enter 1 to begin listening
 ```
 
 ### Unbound Server Setup
 
 ```bash
-# For pulse attacks
-/etc/init.d/unbound start  # Start the service
+# Used for pulse attacks
+service unbound start  # Start the service
 ```
 
 ### DeepSeek Node Setup
 
 ```bash
-cd /usr/local/bin/
-
-# Pre-installed tmux, can enter tmux first and then input commands to start
+# Pre-install tmux, then enter tmux and run the command to start
 tmux
 OLLAMA_HOST=0.0.0.0 ollama serve
 
-# After starting, input the following command in another terminal to start the terminal session
+# After starting, press ctrl b+d to exit, then start the terminal session in another terminal
 ollama run deepseek-r1:1.5b
 ```
 
 ### Attack Parameter Adjustment
 
-You can modify the packet sending rate and other attack parameters in the `bot/attacker/attack` directory.
+You can modify the packet sending rate and other attack parameters in `bot/attacker/attack/config.go`.
 
 ## 📝 Notes
 
-1. **Reflection Amplification Attack Traffic Limitation**: After the reflection amplifier receives the packet, it will call a function to construct the packet and then forward it. Due to CPU performance limitations, the traffic for reflection amplification attacks is much smaller than for UDP direct attacks (after the attack stops, the reflectors will still process unprocessed packets, extending the attack duration). You can adjust the attack rate accordingly.
-2. **Network Issues**: If network problems occur during use, try clearing the iptables rules.
-3. **Safe Usage**: Please use this tool in a secure environment and only for learning and research purposes.
+1. **Reflection Amplification Attack Traffic Limitation**: After receiving packets, reflectors construct and forward packets. Due to CPU performance limitations, reflection amplification attack traffic is much smaller than direct UDP attacks (after the attack stops, reflectors continue processing unhandled packets, extending the attack duration). Adjust the attack rate accordingly.
+2. **Network Issues**: If network issues occur during use, try clearing the iptables rules.
+3. **Safe Usage**: Use this tool in a secure environment for learning and research purposes only.
 
 ## 🔧 Tech Stack
 
@@ -230,58 +245,22 @@ You can modify the packet sending rate and other attack parameters in the `bot/a
 - **🌐 SeedEmu**: Network simulation framework
 - **🚀 Go**: Attack script development language
 - **🐍 Python**: Environment setup scripts
-- **🧠 Ollama**: Deploy DeepSeek 1.5B model
-
-## 🌐 Network Customization Features
-
-DDoSKING offers unparalleled flexibility in network design, allowing researchers to:
-
-- **Create Custom Botnet Topologies**: Design network structures that match real-world scenarios or theoretical models
-- **Scale Your Botnet**: Add as many bot nodes as your hardware can support to test large-scale attacks
-- **Configure Node Relationships**: Define C2 server hierarchies and bot communication patterns
-- **Simulate Geographic Distribution**: Create network segments that mimic geographically distributed botnets
-- **Model Different Network Conditions**: Simulate various bandwidth, latency, and packet loss scenarios
-- **Integrate Custom Attack Scripts**: Add your own attack methods by implementing them in Go
-- **Mix Attack Types**: Combine different attack vectors to create sophisticated multi-vector attack scenarios
-
-The SeedEmu framework that powers DDoSKING enables you to model virtually any network configuration, giving you complete freedom to construct the exact botnet infrastructure needed for your research or testing purposes.
-
-## 📊 Performance and Capabilities
-
-DDoSKING has been rigorously tested and offers:
-
-- Simulation of network environments with hundreds of nodes
-- Support for multiple attack vectors simultaneously
-- Real-time monitoring of attack effects
-- Highly realistic network behavior modelling
-- Containerized approach for easy deployment and scaling
-
-## 🏆 Comparison with Other Solutions
-
-| Feature | DDoSKING | Traditional DDoS Tools | Network Simulators |
-|:-------:|:--------:|:----------------------:|:------------------:|
-| Complete DDoS Infrastructure | ✅ | ❌ | ❌ |
-| AI Service Attack Simulation | ✅ | ❌ | ❌ |
-| Pulse Attack Support | ✅ | ❌ | ❌ |
-| Visual Topology | ✅ | ❌ | ✅ |
-| Single-Host Deployment | ✅ | ✅ | ❌ |
-| Educational Value | ✅ | ⚠️ | ✅ |
-| Research Applications | ✅ | ⚠️ | ✅ |
-
-## 📜 License
-This project is released under the [GNU General Public License v3.0 (GNU GPL v3)](https://www.gnu.org/licenses/gpl-3.0.html). For detailed terms, please refer to the `LICENSE` file in the project root directory.
+- **🧠 Ollama**: Deploying the DeepSeek 1.5B model
 
 ## 🔮 Future Development
 
-We're continuously improving DDoSKING with plans to add:
+We are continuously improving DDoSKING and plan to add:
 
 - More AI service attack simulations
 - Botnet propagation mechanisms
 - Additional attack vectors
-- Enhanced visualization and analytics
+- Enhanced visualization and analysis
 - Integration with common security tools
 - Performance optimizations
 
+## 📜 License
+This project is licensed under the [GNU General Public License v3.0 (GNU GPL v3)](https://www.gnu.org/licenses/gpl-3.0.html). For detailed terms, refer to the `LICENSE` file in the project root directory.
+
 ## ⚠️ Disclaimer
 
-This project is for security research and educational purposes only. Please do not use it for any illegal activities. Users must bear full legal responsibility for any consequences arising from improper use.
+This project is intended for security research and educational purposes only. Do not use it for any illegal activities. Users are fully responsible for any consequences arising from improper use.

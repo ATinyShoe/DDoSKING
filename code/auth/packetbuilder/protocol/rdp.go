@@ -2,98 +2,187 @@ package protocol
 
 import (
     "encoding/binary"
+    "bytes"
 )
 
-// RDPPacket 构造RDP请求包
+// RDPPacket constructs an RDP request packet
 func RDPPacket(srcIP, dstIP string, srcPort, dstPort int) ([]byte, error) {
     payload := []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
     return BuildUDPPacket(srcIP, dstIP, srcPort, dstPort, payload)
 }
 
-// RDPResponseBuffer 生成RDP响应数据
 func RDPResponseBuffer() []byte {
-    // 真实的RDP协议放大响应大小通常可达4KB左右
-    responseSize := 4096
+    // A more realistic RDP initial response size is around 1200-1500 bytes
+    buf := new(bytes.Buffer)
     
-    buf := make([]byte, responseSize)
-
-    // TPKT Header (RFC 1006)
-    buf[0] = 0x03       // Version
-    buf[1] = 0x00       // Reserved
-    binary.BigEndian.PutUint16(buf[2:4], uint16(responseSize)) // 正确设置整个数据包长度
-
+    // Create content first, then backfill the TPKT header length
+    // Reserve space for the TPKT header
+    buf.Write([]byte{0x03, 0x00, 0x00, 0x00})
+    
     // X.224 Connection Confirm (RFC 2126)
-    buf[4] = 0x0D       // 长度域 (TPDU码长度)
-    buf[5] = 0xD0       // CC-TPDU类型 (Connection Confirm)
-    buf[6] = 0x00       // DST-REF 目标引用 (高字节)
-    buf[7] = 0x00       // DST-REF (低字节)
-    buf[8] = 0x00       // SRC-REF 源引用 (高字节)
-    buf[9] = 0x12       // SRC-REF (低字节)
-    buf[10] = 0x00      // 类选项
+    buf.Write([]byte{
+        0x0D,       // Length field (TPDU code length)
+        0xD0,       // CC-TPDU type (Connection Confirm)
+        0x00, 0x00, // DST-REF Destination reference
+        0x12, 0x34, // SRC-REF Source reference (random value)
+        0x00,       // Class options
+    })
     
-    // RDP 协商响应 (MS-RDPBCGR 2.2.1.2)
-    offset := 11
+    // RDP Negotiation Response (MS-RDPBCGR 2.2.1.2)
+    buf.Write([]byte{
+        0x01,                   // TYPE - TYPE_RDP_NEG_RSP
+        0x00,                   // Flags - Reserved
+        0x08, 0x00,             // Length field (little-endian)
+        0x03, 0x00, 0x00, 0x00, // Supported protocols: TLS 1.0 + CredSSP
+    })
     
-    // RDP 协商响应标识
-    buf[offset] = 0x01      // TYPE - TYPE_RDP_NEG_RSP
-    buf[offset+1] = 0x00    // 标志位 - 保留位
-    binary.LittleEndian.PutUint16(buf[offset+2:offset+4], 0x0008) // 长度域
+    // MCS Connect Response
+    mcsHeader := []byte{
+        0x02, 0xF0, 0x80,       // TPKT header + BER: CONNECT-RESPONSE
+        0x7F, 0x66,             // BER: APPLICATION 101, length
+    }
+    buf.Write(mcsHeader)
     
-    // 协商响应标志 - 支持的安全协议
-    binary.LittleEndian.PutUint32(buf[offset+4:offset+8], 0x00000001 | 0x00000002 | 0x00000004 | 0x00000008) 
-    // 0x00000001: SSL (TLS 1.0)
-    // 0x00000002: 早期安全层
-    // 0x00000004: 标准RDP安全层
-    // 0x00000008: 增强型RDP安全层
+    // Result = rt-successful
+    buf.Write([]byte{0x0A, 0x01, 0x00})
     
-    // GCC Conference Create Response PDU
-    offset = 19
+    // Connect ID
+    buf.Write([]byte{0x02, 0x01, 0x22})
     
-    // Generic Conference Control Header
-    buf[offset] = 0x00    // T.124确认PDU类型
-    buf[offset+1] = 0x05  // 长度类型和高位长度
-    buf[offset+2] = 0x00  // 中位长度
-    buf[offset+3] = 0x14  // 低位长度
+    // Domain parameters - BER encoded
+    buf.Write([]byte{
+        0x04, 0x82, 0x01, 0x4B, // OCTET STRING, length = 331 bytes
+        // Below is the actual structure of domain parameters, but we use random data for simplicity
+    })
+    for i := 0; i < 320; i++ {
+        buf.WriteByte(byte(i % 256))
+    }
     
-    // Connect-Response
-    buf[offset+4] = 0x02  // 确认代码 (1字节) - 成功
-    buf[offset+5] = 0x02  // 会议标识 (1字节)
-    buf[offset+6] = 0x00  // 高位节点ID
-    buf[offset+7] = 0x7C  // 低位节点ID
-    buf[offset+8] = 0x27  // 域选择器长度为39
-    buf[offset+9] = 0x41  // 用户数据长度为65
+    // GCC Conference Create Response
+    gccHeader := []byte{
+        0x00, 0x05, 0x00, 0x14, // PER encoded header
+        0x7C, 0x00, 0x01,       // Conference create response
+        0x2A, 0x14, 0x76, 0x0A, // User data length
+    }
+    buf.Write(gccHeader)
     
     // Server Core Data (MS-RDPBCGR 2.2.1.4.2)
-    offset = 40
+    buf.Write([]byte{
+        0x01, 0x0C,             // TS_UD_HEADER.type = SC_CORE
+        0x6C, 0x00,             // TS_UD_HEADER.length = 108 (actual length)
+        0x04, 0x00, 0x08, 0x00, // Version and flags
+        0x01, 0x00,             // Connection type = RDP
+        0x20, 0x00,             // 32 bits per pixel
+        0x03, 0x00,             // Color depth = 24 bpp
+        0x60, 0x00,             // SASSequence
+        0x00, 0x04, 0x00, 0x00, // Keyboard layout = US
+        0x2C, 0x01, 0x00, 0x00, // Client build = 300
+    })
     
-    // 服务器版本
-    binary.LittleEndian.PutUint16(buf[offset:offset+2], 0x0004)       // RDP版本: 4 - 对应Windows Server 2003/Windows XP
-    binary.LittleEndian.PutUint16(buf[offset+2:offset+4], 0x0008)     // 早期能力标志
-    binary.LittleEndian.PutUint16(buf[offset+4:offset+6], 0x0001)     // 连接类型
-    
-    // 服务器能力集
-    offset = 60
-    
-    // 通用能力集 - 最大化放大效果
-    for i := 0; i < 12; i++ {
-        // 能力集头部 (4字节)
-        binary.LittleEndian.PutUint16(buf[offset:offset+2], uint16(i+1))     // 能力集类型
-        binary.LittleEndian.PutUint16(buf[offset+2:offset+4], 0x00C8)        // 能力集长度 (200字节)
-        
-        // 填充能力集数据 (196字节)
-        for j := 0; j < 196; j++ {
-            buf[offset+4+j] = byte((i * j) % 256)
+    // Add server name (fake a reasonable name)
+    serverName := "RD-SERVER01"
+    nameBytes := []byte(serverName)
+    for i := 0; i < 32; i++ {
+        if i < len(nameBytes) {
+            buf.WriteByte(nameBytes[i])
+        } else {
+            buf.WriteByte(0x00) // Fill the remaining part with 0
         }
-        
-        offset += 200
     }
     
-    // 添加大量合法且结构化的填充数据，模拟真实响应
-    for i := offset; i < responseSize-8; i += 8 {
-        // 使用周期性但不易预测的数据模式
-        binary.LittleEndian.PutUint32(buf[i:i+4], uint32(0xDEADBEEF ^ i))
-        binary.LittleEndian.PutUint32(buf[i+4:i+8], uint32(0xFEEDFACE ^ (i+4)))
+    // Add more realistic fields
+    buf.Write([]byte{
+        0x30, 0x00, 0x00, 0x00, // Key length
+        0x01, 0x00, 0x00, 0x00, // IO channel count
+        0x01, 0x00, 0x00, 0x00, // High color depth
+        0x01, 0x00,             // Flag
+        0x01, 0x00,             // Compression
+        0x00, 0x00,             // Padding
+    })
+    
+    // Server Security Data (MS-RDPBCGR 2.2.1.4.3)
+    buf.Write([]byte{
+        0x02, 0x0C,             // TS_UD_HEADER.type = SC_SECURITY
+        0x2C, 0x00,             // TS_UD_HEADER.length = 44
+        0x03, 0x00, 0x00, 0x00, // Encryption methods
+        0x00, 0x00, 0x00, 0x00, // Encryption level
+        0x02, 0x00, 0x00, 0x00, // Server Random length
+        0x00, 0x00, 0x00, 0x00, // Server certificate length
+    })
+    
+    // Add random numbers (some RDP versions have this)
+    for i := 0; i < 32; i++ {
+        buf.WriteByte(byte(i * 3 % 256))
     }
     
-    return buf
+    // Actual capability set section - Server Capability Set (MS-RDPBCGR 2.2.7)
+    capSetHeader := []byte{
+        0x0A, 0x0C,             // TS_UD_HEADER.type = SC_CAPS
+        0x58, 0x02,             // TS_UD_HEADER.length = 600
+    }
+    buf.Write(capSetHeader)
+    
+    // Add 8 more realistic capability sets
+    // 1. General Capability Set
+    buf.Write([]byte{
+        0x01, 0x00,             // Capability set type
+        0x14, 0x00,             // Length: 20 bytes
+        0x01, 0x00,             // Protocol version
+        0x03, 0x00,             // General compression flags
+        0x00, 0x00, 0x00, 0x00, // Extra flags
+        0x00, 0x00, 0x00, 0x00, // Compression type
+        0x01, 0x00,             // Update capability
+        0x00, 0x00, 0x00, 0x00, // Remote frame buffer size
+    })
+    
+    // 2. Bitmap Capability Set
+    buf.Write([]byte{
+        0x02, 0x00,             // Capability set type
+        0x1C, 0x00,             // Length: 28 bytes
+        0x20, 0x00, 0x00, 0x00, // Color depth
+        0x01, 0x00, 0x00, 0x00, // Support flags
+        0x01, 0x00,             // bpp
+        0x00, 0x07,             // Width resolution
+        0x00, 0x05,             // Height resolution
+        0x00, 0x01,             // Desktop width
+        0x00, 0x00,             // Desktop height
+        0x00, 0x01,             // Desktop size
+        0x01, 0x00,             // Palette flag
+        0x00, 0x01,             // Palette cache size
+    })
+    
+    // 3. Order Capability Set
+    buf.Write([]byte{
+        0x03, 0x00,             // Capability set type
+        0x18, 0x00,             // Length: 24 bytes
+    })
+    for i := 0; i < 20; i++ {
+        buf.WriteByte(byte(i % 256))
+    }
+    
+    // 4. Audio Capability Set 
+    buf.Write([]byte{
+        0x0C, 0x00,             // Capability set type
+        0x0C, 0x00,             // Length: 12 bytes
+        0x01, 0x00, 0x00, 0x00, // Sound flags
+        0x40, 0x6F, 0x00, 0x00, // Frequency (28,480 Hz)
+    })
+    
+    // 5-8. Other four capability sets
+    // For simplicity, only add reasonable-sized padding
+    for i := 0; i < 4; i++ {
+        buf.Write([]byte{
+            byte(4 + i), 0x00,          // Capability set type
+            0x18, 0x00,                 // Length: 24 bytes
+        })
+        for j := 0; j < 20; j++ {
+            buf.WriteByte(byte((i*j) % 256))
+        }
+    }
+    
+    // After completion, backfill the TPKT header length
+    completed := buf.Bytes()
+    binary.BigEndian.PutUint16(completed[2:4], uint16(len(completed)))
+    
+    return completed
 }

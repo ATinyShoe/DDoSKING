@@ -90,8 +90,8 @@ DDoSKING经过严格测试，提供：
 | 组件 | 数量 | 描述 |
 |:--------------------:|:--------:|:-------------------------------------:|
 | 🎮 C2服务器 | 1 | 负责向僵尸机器发送攻击命令 |
-| 🔄 反射放大服务器 | 2 | 用于第4层DDoS反射放大攻击 |
-| 🤖 僵尸机器 | 5 | 执行各种攻击 |
+| 🔄 反射放大服务器 | 5 | 用于第4层DDoS反射放大攻击 |
+| 🤖 僵尸机器 | 2 | 执行各种攻击 |
 | 🔍 Unbound DNS解析器 | 1 | 专为脉冲攻击配置 |
 | 🌐 DNS权威服务器 | 1 | 用于积累和放大脉冲攻击请求 |
 | 🧠 DeepSeek 1.5B服务器 | 1 | 模拟针对AI服务的HTTP攻击 |
@@ -152,27 +152,10 @@ pip3 install -r requirements.txt
 source development.dev
 ```
 
-#### 3. 准备Docker镜像
-
-```bash
-# 进入ddosking目录并创建image目录
-cd ddosking
-mkdir image
-cd image
-
-# 将下载的镜像文件放入image目录并加载Docker镜像
-docker load -i ddosking.tar
-docker load -i ollama.tar
-docker load -i unbound.tar
-```
-
-镜像下载地址：[链接](https://rec.ustc.edu.cn/share/e961def0-f679-11ef-8767-d33b1f047ce8)  
-（密码：1958）
-
 ### 🏃 启动模拟环境
 
 ```bash
-# 在ddosking目录运行
+# 根目录运行
 python3 ddosking.py
 
 # 构建并启动Docker容器
@@ -232,25 +215,23 @@ go run main.go  # 启动服务
 
 ```bash
 # 用于脉冲攻击
-/etc/init.d/unbound start  # 启动服务
+service unbound start  # 启动服务
 ```
 
 ### DeepSeek节点设置
 
 ```bash
-cd /usr/local/bin/
-
 # 预安装tmux，可以先进入tmux然后输入命令启动
 tmux
 OLLAMA_HOST=0.0.0.0 ollama serve
 
-# 启动后，在另一个终端输入以下命令启动终端会话
+# 启动后，ctrl b+d 退出，在另一个终端输入以下命令启动终端会话
 ollama run deepseek-r1:1.5b
 ```
 
 ### 攻击参数调整
 
-您可以在`bot/attacker/attack`目录中修改数据包发送速率和其他攻击参数。
+您可以在`bot/attacker/attack/config.go`中修改数据包发送速率和其他攻击参数。
 
 ## 📝 注意事项
 

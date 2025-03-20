@@ -1,7 +1,7 @@
 package attack
 
 import (
-	"bot/packetbuilder"
+	"bot/packetbuilder/protocol"
 	"fmt"
 	"sync"
 	"time"
@@ -80,7 +80,7 @@ func (l *Layer4) floodAttack(packetsBuilder AttackMethod) {
 // 由于仿真环境计算资源有限，为了避免过度消耗资源，需要控制攻击速率
 func (l *Layer4) attack(packets [][]byte) {
 	// 获取网络接口并打开
-	interfaceName, _, err := packetbuilder.FindInterface(l.DstIP)
+	interfaceName, _, err := protocol.FindInterface(l.DstIP)
 	if err != nil {
 		fmt.Printf("没有可用的网络接口: %v\n", err)
 		return

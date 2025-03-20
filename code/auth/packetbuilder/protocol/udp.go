@@ -1,96 +1,94 @@
 package protocol
 
-import(
-    "fmt"
-    "net"
-    "github.com/google/gopacket"
-    "github.com/google/gopacket/layers"
-    "auth/packetbuilder"
-    "errors"
-    "strings"
+import (
+	"errors"
+	"fmt"
+	"net"
+	"strings"
+
+	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
 )
 
-// UDP 泛洪
-func UDPPacket(srcip, dstip string, srcport, dstport int) ([]byte, error){
-	var payloadstr string = strings.Repeat("T",1400)  // 应用层数据
+// UDP Flood
+func UDPPacket(srcip, dstip string, srcport, dstport int) ([]byte, error) {
+	var payloadstr string = strings.Repeat("T", 1400) // Application layer data
 	payload := []byte(payloadstr)
 
 	return BuildUDPPacket(srcip, dstip, srcport, dstport, payload)
 }
 
-
 func BuildUDPPacket(srcIP, dstIP string, srcPort, dstPort int, payload []byte) ([]byte, error) {
-    dstMacStr, err := packetbuilder.FindMAC(dstIP)
-    if err != nil {
-        return nil, fmt.Errorf("failed to find MAC for %s: %w", dstIP, err)
-    }
-    dstMac, err := net.ParseMAC(dstMacStr)
-    if err != nil {
-        return nil, fmt.Errorf("failed to parse MAC address: %w", err)
-    }
+	dstMacStr, err := FindMAC(dstIP)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find MAC for %s: %w", dstIP, err)
+	}
+	dstMac, err := net.ParseMAC(dstMacStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse MAC address: %w", err)
+	}
 
-    srcMac, err := packetbuilder.GetSrcMAC(dstIP)
-    if err != nil {
-        return nil, fmt.Errorf("failed to get source MAC address: %w", err)
-    }
+	srcMac, err := GetSrcMAC(dstIP)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get source MAC address: %w", err)
+	}
 
-    // 构造 Ethernet 层
-    ethLayer := &layers.Ethernet{
-        SrcMAC:       srcMac, // 源 MAC 地址
-        DstMAC:       dstMac, // 下一跳 MAC 地址
-        EthernetType: layers.EthernetTypeIPv4,
-    }
+	// Construct Ethernet layer
+	ethLayer := &layers.Ethernet{
+		SrcMAC:       srcMac, // Source MAC address
+		DstMAC:       dstMac, // Next-hop MAC address
+		EthernetType: layers.EthernetTypeIPv4,
+	}
 
+	// Construct IP layer
+	ipLayer := &layers.IPv4{
+		Version:    4,                    // Explicitly set IPv4 version
+		IHL:        5,                    // Internet Header Length (usually 5)
+		TOS:        0,                    // Type of Service
+		Length:     0,                    // Total length, automatically calculated during serialization
+		Id:         0,                    // Packet ID
+		Flags:      0,                    // Flags
+		FragOffset: 0,                    // Fragment offset
+		TTL:        64,                   // Time to Live
+		Protocol:   layers.IPProtocolUDP, // Protocol type
+		SrcIP:      net.ParseIP(srcIP),   // Spoofed source IP
+		DstIP:      net.ParseIP(dstIP),   // Destination IP
+	}
 
-    // 构造 IP 层
-    ipLayer := &layers.IPv4{
-        Version:  4,                        // 显式设置 IPv4 版本
-        IHL:      5,                        // Internet Header Length (一般为 5)
-        TOS:      0,                        // 服务类型
-        Length:   0,                        // 总长度，由序列化过程自动计算
-        Id:       0,                        // 数据包 ID
-        Flags:    0,                        // 标志位
-        FragOffset: 0,                      // 分段偏移
-        TTL:      64,                       // 生存时间
-        Protocol: layers.IPProtocolUDP,     // 协议类型
-        SrcIP:    net.ParseIP(srcIP),       // 伪造的源 IP
-        DstIP:    net.ParseIP(dstIP),       // 目标 IP
-    }
+	// Construct UDP layer
+	udpLayer := &layers.UDP{
+		SrcPort: layers.UDPPort(srcPort), // Spoofed source port
+		DstPort: layers.UDPPort(dstPort), // Destination port
+	}
 
-    // 构造 UDP 层
-    udpLayer := &layers.UDP{
-        SrcPort: layers.UDPPort(srcPort), // 伪造的源端口
-        DstPort: layers.UDPPort(dstPort), // 目标端口
-    }
+	// Set network layer to calculate checksum
+	if err := udpLayer.SetNetworkLayerForChecksum(ipLayer); err != nil {
+		return nil, fmt.Errorf("failed to calculate UDP checksum: %v", err)
+	}
 
-    // 设置网络层以计算校验和
-    if err := udpLayer.SetNetworkLayerForChecksum(ipLayer); err != nil {
-        return nil, fmt.Errorf("UDP 校验和计算失败: %v", err)
-    }
+	// Create serialization options to set length and checksum
+	options := gopacket.SerializeOptions{FixLengths: true, ComputeChecksums: true}
+	buffer := gopacket.NewSerializeBuffer()
 
-    // 创建序列化选项，用于设置长度和校验和
-    options := gopacket.SerializeOptions{FixLengths: true, ComputeChecksums: true}
-    buffer := gopacket.NewSerializeBuffer()
+	// Serialize Ethernet layer, IP layer, UDP layer, and payload
+	err = gopacket.SerializeLayers(buffer, options, ethLayer, ipLayer, udpLayer, gopacket.Payload(payload))
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize layers: %v", err)
+	}
 
-    // 序列化以太网层、IP 层、UDP 层和数据负载
-    err = gopacket.SerializeLayers(buffer, options, ethLayer, ipLayer, udpLayer, gopacket.Payload(payload))
-    if err != nil {
-        return nil, fmt.Errorf("序列化层失败: %v", err)
-    }
-
-    // 返回生成的报文字节切片
-    return buffer.Bytes(), nil
+	// Return the generated packet as a byte slice
+	return buffer.Bytes(), nil
 }
 
-// 解析UDP报文，返回应用层数据
+// Parse UDP packet and return application layer data
 func ResolveUDPPacket(packet []byte) (srcPort, dstPort int, payload []byte, err error) {
-	// 用 gopacket 解析数据包，假设从 UDP 层开始解析
+	// Use gopacket to parse the packet, assuming parsing starts from the UDP layer
 	parser := gopacket.NewPacket(packet, layers.LayerTypeUDP, gopacket.Default)
 
-	// 提取 UDP 层
+	// Extract UDP layer
 	udpLayer := parser.Layer(layers.LayerTypeUDP)
 	if udpLayer == nil {
-		return 0, 0, nil, errors.New("解析 UDP 层失败")
+		return 0, 0, nil, errors.New("failed to parse UDP layer")
 	}
 	udp, _ := udpLayer.(*layers.UDP)
 	srcPort = int(udp.SrcPort)

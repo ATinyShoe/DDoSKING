@@ -9,11 +9,11 @@ import (
 	"github.com/google/gopacket/layers"
 )
 
-// SendDNSResponse 构造并发送放大的DNS响应
+// SendDNSResponse constructs and sends an amplified DNS response
 func SendDNSResponse(conn *net.UDPConn, raddr *net.UDPAddr, req []byte) {
 	query, err := protocol.DNSParse(req)
 	if err != nil {
-		fmt.Println("解析DNS报文失败:", err)
+		fmt.Println("Failed to parse DNS packet:", err)
 		return
 	}
 	domain := query.Questions[0].Name
@@ -24,7 +24,7 @@ func SendDNSResponse(conn *net.UDPConn, raddr *net.UDPAddr, req []byte) {
 	response.Questions[0] = query.Questions[0]
 	response.Questions[0].Name = []byte(domain)
 
-	// 为了绕过域名压缩技术，尽可能使得NS记录长且每个域名完全不同
+	// To bypass domain name compression, make the NS records as long as possible and ensure each domain name is unique
 	response.Answers = []layers.DNSResourceRecord{
 		{
 			Name:  []byte(domain),
@@ -59,77 +59,77 @@ func SendDNSResponse(conn *net.UDPConn, raddr *net.UDPAddr, req []byte) {
 	dnsBuffer := gopacket.NewSerializeBuffer()
 	options := gopacket.SerializeOptions{FixLengths: true, ComputeChecksums: true}
 	if err := response.SerializeTo(dnsBuffer, options); err != nil {
-		fmt.Printf("序列化 DNS 层失败: %v\n", err)
+		fmt.Printf("Failed to serialize DNS layer: %v\n", err)
 		return
 	}
 
 	conn.WriteToUDP(dnsBuffer.Bytes(), raddr)
 }
 
-// SendNTPResponse 构造并发送放大的NTP响应
+// SendNTPResponse constructs and sends an amplified NTP response
 func SendNTPResponse(conn *net.UDPConn, raddr *net.UDPAddr) {
 	buf := protocol.NTPResponseBuffer()
 	conn.WriteToUDP(buf, raddr)
 }
 
-// SendRDPResponse 构造并发送放大的RDP响应
+// SendRDPResponse constructs and sends an amplified RDP response
 func SendRDPResponse(conn *net.UDPConn, raddr *net.UDPAddr) {
 	buf := protocol.RDPResponseBuffer()
 	conn.WriteToUDP(buf, raddr)
 }
 
-// SendSSDPResponse 构造并发送放大的SSDP响应
-// 典型放大倍数：1:30
+// SendSSDPResponse constructs and sends an amplified SSDP response
+// Typical amplification factor: 1:30
 func SendSSDPResponse(conn *net.UDPConn, raddr *net.UDPAddr) {
-	// 获取多个响应包
+	// Get multiple response packets
 	responses := protocol.SSDPResponseBuffer()
 
-	// 循环发送所有响应包以实现更高的放大倍数
+	// Loop through and send all response packets to achieve higher amplification
 	for _, resp := range responses {
 		conn.WriteToUDP(resp, raddr)
 	}
 }
 
-// SendSNMPResponse 构造并发送放大的SNMP响应
-// 放大倍数：约 6-10 倍
+// SendSNMPResponse constructs and sends an amplified SNMP response
+// Amplification factor: approximately 6-10x
 func SendSNMPResponse(conn *net.UDPConn, raddr *net.UDPAddr) {
 	buf := protocol.SNMPResponseBuffer()
 	conn.WriteToUDP(buf, raddr)
 }
 
-// SendCHARGENResponse 构造并发送放大的CHARGEN响应
-// 放大倍数：高达 358 倍
+// SendCHARGENResponse constructs and sends an amplified CHARGEN response
+// Amplification factor: up to 358x
 func SendCHARGENResponse(conn *net.UDPConn, raddr *net.UDPAddr) {
 	buf := protocol.CHARGENResponseBuffer()
 	conn.WriteToUDP(buf, raddr)
 }
 
-// SendOPENVPNResponse 构造并发送放大的OpenVPN响应
-// 放大倍数：约 2-3 倍
+// SendOPENVPNResponse constructs and sends an amplified OpenVPN response
+// Amplification factor: approximately 2-3x
 func SendOPENVPNResponse(conn *net.UDPConn, raddr *net.UDPAddr) {
 	buf := protocol.OPENVPNResponseBuffer()
 	conn.WriteToUDP(buf, raddr)
 }
 
-// SendCLDAPResponse 构造并发送放大的CLDAP响应
-// 放大倍数：约 56-70 倍
+// SendCLDAPResponse constructs and sends an amplified CLDAP response
+// Amplification factor: approximately 56-70x
 func SendCLDAPResponse(conn *net.UDPConn, raddr *net.UDPAddr) {
-	// 获取多个响应包
+	// Get multiple response packets
 	responses := protocol.CLDAPResponseBuffer()
 
-	// 循环发送所有响应包以实现更高的放大倍数
+	// Loop through and send all response packets to achieve higher amplification
 	for _, resp := range responses {
 		conn.WriteToUDP(resp, raddr)
 	}
 }
 
-// SendMEMCACHEDResponse 构造并发送放大的Memcached响应
-// 放大倍数：高达 51,000 倍
+// SendMEMCACHEDResponse constructs and sends an amplified Memcached response
+// Amplification factor: up to 51,000x
 func SendMEMCACHEDResponse(conn *net.UDPConn, raddr *net.UDPAddr) {
-	// 获取多个响应包
+	// Get multiple response packets
 	responses := protocol.MEMCACHEDResponseBuffer()
 
-	// 循环发送所有响应包以实现极高的放大倍数
+	// Loop through and send all response packets to achieve extremely high amplification
 	for _, resp := range responses {
 		conn.WriteToUDP(resp, raddr)
 	}

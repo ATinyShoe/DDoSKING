@@ -55,21 +55,24 @@ Thumbs.db
 *.log
 logs/
 
-# SeedEmu 特殊规则
-output/          
-dummies/          
-development.env   
+# SeedEmu specific rules
+output/
+dummies/
+development.env
 
-# 测试相关
+# Testing related
 coverage/
 *.lcov
 
-# 前端构建产物
+# Frontend build artifacts
 client/frontend/public/
 client/frontend/dist/
 client/frontend/.parcel-cache/
 
-# 种子文件特殊规则
+# Seed file specific rules
 *.seed
 *.meta
 *.emulator
+
+# c2 history
+.c2_history

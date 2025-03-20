@@ -1,7 +1,7 @@
 package protocol
 
 func TFTPPacket(srcIP, dstIP string, srcPort, dstPort int) ([]byte, error) {
-	// 构造tftp读请求（尝试获取大文件）
+	// Construct a TFTP read request (attempting to fetch a large file)
 	payload := []byte{
 		0x00, 0x01, // OP=Read Request
 		0x66, 0x69, 0x6C, 0x65, 0x6E, 0x61, 0x6D, 0x65, 0x00, // "filename"

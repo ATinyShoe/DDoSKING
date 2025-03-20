@@ -86,7 +86,7 @@ func printBanner() {
 ██╔══██╗██╔══╝  ██╔══╝  ██║     ██╔══╝  ██║        ██║   ██║   ██║██╔══██╗
 ██║  ██║███████╗██║     ███████╗███████╗╚██████╗   ██║   ╚██████╔╝██║  ██║
 ╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝╚══════╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
-                                                                           
+																		   
 ██████╗ ██████╗  ██████╗ ███████╗                                          
 ██╔══██╗██╔══██╗██╔═══██╗██╔════╝                                          
 ██║  ██║██║  ██║██║   ██║███████╗                                          
@@ -95,46 +95,46 @@ func printBanner() {
 ╚═════╝ ╚═════╝  ╚═════╝ ╚══════╝                                          
 `
 	fmt.Println(color.HiCyanString(banner))
-	fmt.Println(color.HiYellowString("DDoS 反射放大攻击模拟器"))
-	fmt.Println(color.HiWhiteString("支持协议: DNS, NTP, RDP, SSDP, SNMP, CHARGEN, OPENVPN, CLDAP, MEMCACHED"))
+	fmt.Println(color.HiYellowString("DDoS Reflection Amplification Attack Simulator"))
+	fmt.Println(color.HiWhiteString("Supported Protocols: DNS, NTP, RDP, SSDP, SNMP, CHARGEN, OPENVPN, CLDAP, MEMCACHED"))
 }
 
 func printMenu() {
-	fmt.Println("\n" + color.HiYellowString("=== 服务器控制菜单 ==="))
-	fmt.Println("1. 启动所有服务器")
-	fmt.Println("2. 停止所有服务器")
-	fmt.Println("3. 查看服务器状态")
-	fmt.Println("4. 单独控制服务器")
-	fmt.Println("5. 刷新服务器状态")
-	fmt.Println("6. 退出")
-	fmt.Print("\n请输入选项: ")
+	fmt.Println("\n" + color.HiYellowString("=== Server Control Menu ==="))
+	fmt.Println("1. Start all servers")
+	fmt.Println("2. Stop all servers")
+	fmt.Println("3. View server status")
+	fmt.Println("4. Control individual server")
+	fmt.Println("5. Refresh server status")
+	fmt.Println("6. Exit")
+	fmt.Print("\nEnter your choice: ")
 }
 
 func handleInput(ctx context.Context) {
 	var choice int
 	if _, err := fmt.Scanln(&choice); err != nil {
-		fmt.Println(color.RedString("输入错误，请重新输入"))
+		fmt.Println(color.RedString("Invalid input, please try again"))
 		return
 	}
 
 	switch choice {
 	case 1:
 		startAllServers(ctx)
-		fmt.Println(color.GreenString("所有服务器已启动"))
+		fmt.Println(color.GreenString("All servers started"))
 	case 2:
 		stopAllServers()
-		fmt.Println(color.RedString("所有服务器已停止"))
+		fmt.Println(color.RedString("All servers stopped"))
 	case 3:
 		showStatus()
 	case 4:
 		controlIndividual(ctx)
 	case 5:
 		resetServerStatus()
-		fmt.Println(color.GreenString("服务器状态已刷新"))
+		fmt.Println(color.GreenString("Server status refreshed"))
 	case 6:
 		os.Exit(0)
 	default:
-		fmt.Println(color.RedString("无效选项"))
+		fmt.Println(color.RedString("Invalid option"))
 	}
 }
 
@@ -153,13 +153,13 @@ func stopAllServers() {
 }
 
 func showStatus() {
-	statColors.Println("\n=== 服务器状态 ===")
-	fmt.Println("协议名称\t状态\t\t收到包数\t最后活动时间")
+	statColors.Println("\n=== Server Status ===")
+	fmt.Println("Protocol\tStatus\t\tPackets Received\tLast Activity Time")
 	fmt.Println("--------------------------------------------------------")
 	for proto, status := range servers {
-		stateColor := color.RedString("停止")
+		stateColor := color.RedString("Stopped")
 		if status.IsRunning {
-			stateColor = color.GreenString("运行中")
+			stateColor = color.GreenString("Running")
 		}
 
 		lastActivity := "N/A"
@@ -177,7 +177,7 @@ func showStatus() {
 }
 
 func controlIndividual(ctx context.Context) {
-	fmt.Println("\n" + color.HiYellowString("=== 单独控制服务器 ==="))
+	fmt.Println("\n" + color.HiYellowString("=== Individual Server Control ==="))
 	fmt.Println("1. DNS")
 	fmt.Println("2. NTP")
 	fmt.Println("3. RDP")
@@ -187,12 +187,12 @@ func controlIndividual(ctx context.Context) {
 	fmt.Println("7. OPENVPN")
 	fmt.Println("8. CLDAP")
 	fmt.Println("9. MEMCACHED")
-	fmt.Println("0. 返回上级菜单")
-	fmt.Print("\n请选择服务器: ")
+	fmt.Println("0. Return to previous menu")
+	fmt.Print("\nSelect a server: ")
 
 	var choice int
 	if _, err := fmt.Scanln(&choice); err != nil {
-		fmt.Println(color.RedString("输入错误"))
+		fmt.Println(color.RedString("Invalid input"))
 		return
 	}
 
@@ -219,41 +219,41 @@ func controlIndividual(ctx context.Context) {
 	case 0:
 		return
 	default:
-		fmt.Println(color.RedString("无效选项"))
+		fmt.Println(color.RedString("Invalid option"))
 		return
 	}
 
-	fmt.Printf("\n当前 [%s] 服务器状态：", proto)
+	fmt.Printf("\nCurrent [%s] server status: ", proto)
 	if servers[proto].IsRunning {
-		fmt.Println(color.GreenString("运行中"))
+		fmt.Println(color.GreenString("Running"))
 	} else {
-		fmt.Println(color.RedString("停止"))
+		fmt.Println(color.RedString("Stopped"))
 	}
-	fmt.Println("1. 启动服务器")
-	fmt.Println("2. 停止服务器")
-	fmt.Println("3. 返回上级菜单")
-	fmt.Print("\n请输入操作选项: ")
+	fmt.Println("1. Start server")
+	fmt.Println("2. Stop server")
+	fmt.Println("3. Return to previous menu")
+	fmt.Print("\nEnter your choice: ")
 
 	var op int
 	if _, err := fmt.Scanln(&op); err != nil {
-		fmt.Println(color.RedString("输入错误"))
+		fmt.Println(color.RedString("Invalid input"))
 		return
 	}
 	switch op {
 	case 1:
 		if servers[proto].IsRunning {
-			fmt.Println(color.YellowString("服务器已经在运行"))
+			fmt.Println(color.YellowString("Server is already running"))
 		} else {
 			go startServer(ctx, proto)
-			fmt.Printf("[%s] 服务器启动中...\n", proto)
+			fmt.Printf("[%s] Server starting...\n", proto)
 		}
 	case 2:
 		servers[proto].IsRunning = false
-		fmt.Printf("[%s] 服务器已停止\n", proto)
+		fmt.Printf("[%s] Server stopped\n", proto)
 	case 3:
 		return
 	default:
-		fmt.Println(color.RedString("无效选项"))
+		fmt.Println(color.RedString("Invalid option"))
 	}
 	time.Sleep(1 * time.Second)
 }
@@ -265,7 +265,7 @@ func startServer(ctx context.Context, proto string) {
 	addr := &net.UDPAddr{Port: ports[proto]}
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		fmt.Printf("启动 %s 服务器失败: %v\n", proto, err)
+		fmt.Printf("Failed to start %s server: %v\n", proto, err)
 		status.IsRunning = false
 		return
 	}
@@ -280,11 +280,11 @@ func startServer(ctx context.Context, proto string) {
 			conn.SetReadDeadline(time.Now().Add(1 * time.Second))
 			n, raddr, err := conn.ReadFromUDP(buf)
 			if err != nil {
-				// 忽略超时错误
+				// Ignore timeout errors
 				if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
 					continue
 				}
-				fmt.Printf("[%s] 接收数据错误: %v\n", proto, err)
+				fmt.Printf("[%s] Error receiving data: %v\n", proto, err)
 				continue
 			}
 
