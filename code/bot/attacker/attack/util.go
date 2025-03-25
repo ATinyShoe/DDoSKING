@@ -1,55 +1,56 @@
 package attack
 
-import(
+import (
 	"fmt"
-	"time"
 	"math/rand"
+	"time"
+
 	"golang.org/x/time/rate"
 )
+
 var bandwidthLimiter *rate.Limiter
 
-
-// 设置随机种子
+// Set random seed
 func init() {
-    rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().UnixNano())
 }
 
-// 伪造地址和端口
+// Generate random IP address
 func RandIPv4() string {
-	rand.Seed(time.Now().UnixNano()) // 设置随机种子
+	rand.Seed(time.Now().UnixNano()) // Set random seed
 	return fmt.Sprintf("%d.%d.%d.%d",
-		rand.Intn(256), // 每个段的范围是 0-255
+		rand.Intn(256), // Each segment ranges from 0-255
 		rand.Intn(256),
 		rand.Intn(256),
 		rand.Intn(256),
 	)
 }
 
+// Generate random port
 func RandPort() int {
-	return rand.Intn(65535-1) + 1    // 生成 1 到 65535 的随机端口
+	return rand.Intn(65535-1) + 1 // Generate a random port between 1 and 65535
 }
 
-// ResetStopChannel 重置停止通道
+// ResetStopChannel resets the stop channel
 func ResetStopChannel() {
-	// 重置停止通道
+	// Reset the stop channel
 	select {
 	case <-STOP:
-		// 通道已经关闭，需要重建
+		// Channel is closed, needs to be recreated
 		STOP = make(chan struct{})
 	default:
-		// 通道仍然打开，不需要做任何事情
+		// Channel is still open, no action needed
 	}
 }
 
-// 初始化带宽限制器
+// Initialize bandwidth limiter
 func InitBandwidthLimiter() {
-    if BandwidthLimit <= 0 {
-        bandwidthLimiter = nil // 无限制
-        return
-    }
+	if BandwidthLimit <= 0 {
+		bandwidthLimiter = nil // No limit
+		return
+	}
 
-    // 将 Mbps 转换为字节/秒（1 kbps = 125 字节/秒），1 个令牌代表 1 字节
-    bytesPerSecond := BandwidthLimit * 125
-    bandwidthLimiter = rate.NewLimiter(rate.Limit(bytesPerSecond), bytesPerSecond * PacketBurst)
+	// Convert Mbps to bytes/second (1 kbps = 125 bytes/second), 1 token represents 1 byte
+	bytesPerSecond := BandwidthLimit * 125
+	bandwidthLimiter = rate.NewLimiter(rate.Limit(bytesPerSecond), bytesPerSecond*PacketBurst)
 }
-

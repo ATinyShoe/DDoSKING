@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	
+
 	"c2/attack"
 	"c2/bot"
 	"c2/config"
-	
+
 	"github.com/chzyer/readline"
 )
 
-// HandleUserInput 处理用户命令输入
+// HandleUserInput handles user command input
 func HandleUserInput() {
-	// 创建带命令历史支持的readline实例
+	// Create a readline instance with command history support
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:          "C2> ",
 		HistoryFile:     config.HistoryFile,
@@ -27,14 +27,14 @@ func HandleUserInput() {
 	}
 	defer rl.Close()
 
-	// 设置自动完成
+	// Set up auto-completion
 	rl.Config.AutoComplete = setupAutoComplete()
 
 	for {
 		line, err := rl.Readline()
 		if err != nil { // io.EOF, readline.ErrInterrupt
 			if err == readline.ErrInterrupt {
-				continue // 处理Ctrl+C
+				continue // Handle Ctrl+C
 			}
 			break
 		}
@@ -60,7 +60,7 @@ func HandleUserInput() {
 			ShowBotInfo(args[1:])
 		case "clear":
 			ClearScreen()
-			rl.SetPrompt("C2> ") // 清屏后重置提示符
+			rl.SetPrompt("C2> ") // Reset prompt after clearing screen
 		case "help":
 			ShowHelp()
 		case "stop":
@@ -73,15 +73,15 @@ func HandleUserInput() {
 	}
 }
 
-// setupAutoComplete 设置命令自动完成
+// setupAutoComplete sets up command auto-completion
 func setupAutoComplete() *readline.PrefixCompleter {
-	// 创建"attack"子命令的补全项
+	// Create completion items for "attack" subcommands
 	attackItems := make([]readline.PrefixCompleterInterface, 0)
 	for _, method := range config.GetAllMethods() {
 		attackItems = append(attackItems, readline.PcItem(method))
 	}
-	
-	// 创建主补全器
+
+	// Create the main completer
 	return readline.NewPrefixCompleter(
 		readline.PcItem("attack", attackItems...),
 		readline.PcItem("list"),
@@ -93,7 +93,7 @@ func setupAutoComplete() *readline.PrefixCompleter {
 	)
 }
 
-// HandleStopCommand 处理停止命令
+// HandleStopCommand handles the stop command
 func HandleStopCommand(args []string) {
 	if len(args) == 0 {
 		bot.SendStopToAllBots()

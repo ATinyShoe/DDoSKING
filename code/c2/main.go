@@ -4,23 +4,23 @@ import (
 	"fmt"
 	"net"
 	"os"
-	
+
 	"c2/bot"
 	"c2/cli"
 	"c2/config"
 )
 
 func main() {
-	// 初始化配置
+	// Initialize configuration
 	config.Init()
-	
-	// 显示启动横幅
+
+	// Display startup banner
 	cli.ShowBanner()
-	
-	// 启动C2服务器监听
+
+	// Start C2 server listener
 	go startC2Server()
-	
-	// 处理用户命令输入
+
+	// Handle user command input
 	cli.HandleUserInput()
 }
 

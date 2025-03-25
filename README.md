@@ -189,7 +189,7 @@ Zombie machines in the botnet need to be configured with the IP addresses of the
 
 ```bash
 cd /root/c2
-go run main.go  # Start the C2 server to begin listening
+go run .  # Start the C2 server to begin listening
 ```
 
 ### Zombie Node Setup
@@ -197,17 +197,14 @@ go run main.go  # Start the C2 server to begin listening
 ```bash
 # Automatically configured, no manual operation required
 cd /root/bot
-echo 10.150.0.71 > serverfile/c2.txt  # Add C2 server IP address
-echo -e "10.171.0.71\n10.170.0.71" > serverfile/reflector.txt  # Add reflector IP addresses
-echo 10.152.0.71 > serverfile/resolver.txt  # Add Unbound server IP address
-go run main.go  # Start the service and connect to the C2 server
+go run .  # Start the service and connect to the C2 server
 ```
 
 ### Reflector Node Setup
 
 ```bash
 cd /root/reflector
-go run main.go  # Start the service
+go run .  # Start the service
 # Enter 1 to begin listening
 ```
 

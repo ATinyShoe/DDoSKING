@@ -1,1 +1,1 @@
-curl --limit-rate 1K http://10.180.0.71/download/test.txt
+curl --limit-rate 100 http://10.180.0.71/download/test.txt
