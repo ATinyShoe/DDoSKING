@@ -108,14 +108,14 @@ DDoSKING涵盖各种类型的DDoS攻击，主要分为以下几类：
 
 用大量流量填满网络带宽的攻击，包括：
 
-- **直接攻击**：UDP洪水
+- **直接攻击**：UDP
 - **反射放大攻击**：DNS、NTP、CLDAP、SSDP等
 
 ### 2. 🔋 资源耗尽攻击（第7层）
 
 耗尽服务器计算资源的攻击，包括：
 
-- **HTTP洪水**：为保持环境轻量，Web服务仅提供单页面
+- **HTTP洪水**：GET、POST相关方法，slowloris等
 - **构建针对DeepSeek的复杂提示**：消耗AI服务资源
 - **SYN洪水**：耗尽目标的半开连接队列
 
@@ -133,7 +133,7 @@ DDoSKING涵盖各种类型的DDoS攻击，主要分为以下几类：
 
 ## 🚀 环境设置
 
-建议在Linux上设置环境。Windows用户可以使用WSL。
+建议在Linux上设置环境。您可以使用tc对docker网络进行限速，从而实现更精准的模拟。
 
 ### 📦 安装步骤
 
@@ -160,8 +160,8 @@ python3 ddosking.py
 
 # 构建并启动Docker容器
 cd output
-docker-compose build  # 首次构建大约需要半小时
-docker-compose up
+docker-compose build && docker-compose up -d # 首次构建大约需要半小时
+
 
 # 关闭模拟环境
 docker-compose down
@@ -173,7 +173,7 @@ docker-compose down
 iptables -t nat -F
 ```
 
-> **💡 提示**：建议在清除前保存NAT规则，以便调试时可以恢复。
+> **💡 提示**：NAT规则可以重启docker恢复
 
 在浏览器中访问以下URL查看网络拓扑图：
 
@@ -182,8 +182,6 @@ http://127.0.0.1:8080/map.html
 ```
 
 ## ⚙️ 攻击配置
-
-僵尸网络中的僵尸机器需要配置C2服务器、反射器和Unbound DNS解析器的IP地址。
 
 ### C2服务器设置
 
@@ -197,11 +195,9 @@ go run main.go  # 启动C2服务器开始监听
 ```bash
 # 自动配置，无需手动操作
 cd /root/bot
-echo 10.150.0.71 > serverfile/c2.txt  # 添加C2服务器IP地址
-echo -e "10.171.0.71\n10.170.0.71" > serverfile/reflector.txt  # 添加反射器IP地址
-echo 10.152.0.71 > serverfile/resolver.txt  # 添加Unbound服务器IP地址
-go run main.go  # 启动服务并连接到C2服务器
+go run .  # 启动服务并连接到C2服务器
 ```
+您可以在bot/attacker/attack/config.go中配置僵尸主机，包括发包限速，线程数等。
 
 ### 反射器节点设置
 
